@@ -1,0 +1,36 @@
+﻿# Secrets and local configuration
+.env
+.env.*
+!.env.example
+**/appsettings.json
+!**/appsettings.example.json
+**/appsettings.Development.json
+**/appsettings.Local.json
+**/secrets.json
+
+# Node.js
+**/node_modules/
+**/dist/
+**/coverage/
+
+# .NET build output
+**/bin/
+**/obj/
+
+# IDE and operating system files
+.vs/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Terraform local state and secrets
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example

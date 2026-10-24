@@ -1,0 +1,189 @@
+
+/* Login */
+
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: #f3f6fb;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 32px;
+  border: 1px solid #e3e9f2;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 12px 40px rgb(25 42 70 / 8%);
+}
+
+.login-brand-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  background: #273c5a;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.login-card h1 {
+  margin: 6px 0 8px;
+  color: #24334b;
+  font-size: 26px;
+}
+
+.login-subtitle,
+.login-footnote {
+  color: #8390a4;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.login-footnote {
+  margin: 24px 0 0;
+  text-align: center;
+}
+
+.login-form {
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.login-form label,
+.admin-form label {
+  display: grid;
+  gap: 7px;
+  color: #526078;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.login-form input,
+.admin-form input,
+.admin-form select,
+.panel td select {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid #dce3ed;
+  border-radius: 7px;
+  background: #fff;
+  color: #28364d;
+  font: inherit;
+  font-size: 13px;
+}
+
+.login-form input:focus,
+.admin-form input:focus,
+.admin-form select:focus,
+.panel td select:focus {
+  border-color: #7198f4;
+  outline: 2px solid rgb(84 135 245 / 14%);
+}
+
+.login-form button,
+.admin-form > button {
+  min-height: 40px;
+  margin-top: 8px;
+  padding: 9px 14px;
+  border: 0;
+  border-radius: 7px;
+  background: #3e70dc;
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.login-form button:disabled,
+.admin-form button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.login-form .secondary-button {
+  margin-top: 0;
+  border: 1px solid #dce3ed;
+  background: #fff;
+  color: #53627a;
+}
+
+/* User and assignment pages */
+
+.admin-form {
+  margin-top: 16px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 18px 0 10px;
+}
+
+.permission-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: #edf2fa;
+  color: #50617a;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.permission-administrator {
+  background: #e9efff;
+  color: #466bd0;
+}
+
+.permission-viewer {
+  background: #edf7f3;
+  color: #238261;
+}
+
+.assignment-end-date {
+  display: block;
+  margin-top: 5px;
+  color: #8793a6;
+  font-size: 10px;
+}
+
+.secondary-button {
+  padding: 7px 10px;
+  border: 1px solid #dce3ed;
+  border-radius: 6px;
+  background: #fff;
+  color: #53627a;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.notice-error {
+  padding: 10px 12px;
+  border: 1px solid #f2d3d6;
+  border-radius: 7px;
+  background: #fff3f3;
+  color: #b73f4d;
+  font-size: 12px;
+}
+
+@media (max-width: 650px) {
+  .login-card {
+    padding: 24px;
+  }
+
+  .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
