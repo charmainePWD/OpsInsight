@@ -22,6 +22,7 @@ function AssignmentsPage({ currentUser }: AssignmentsPageProps) {
   } = useAssignments(true)
 
   const [actionError, setActionError] = useState('')
+  const [showAssignForm, setShowAssignForm] = useState(false)
 
   async function safeUnassign(id: number) {
     setActionError('')
@@ -53,6 +54,19 @@ function AssignmentsPage({ currentUser }: AssignmentsPageProps) {
       {actionError && <p className="notice-error" role="alert">{actionError}</p>}
 
       {isAdmin && (
+        <div className="page-action-row">
+          <button
+            type="button"
+            className="page-action-button"
+            aria-expanded={showAssignForm}
+            onClick={() => setShowAssignForm((visible) => !visible)}
+          >
+            {showAssignForm ? 'Close form' : 'Assign incident'}
+          </button>
+        </div>
+      )}
+
+      {isAdmin && showAssignForm && (
         <AssignIncidentForm
           users={users}
           incidents={incidents}

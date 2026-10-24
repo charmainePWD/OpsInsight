@@ -17,6 +17,7 @@ function AssignIncidentForm({
   const [incidentId, setIncidentId] = useState('')
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
+  const [messageType, setMessageType] = useState<'success' | 'error' | ''>('')
 
   const openIncidents = incidents.filter(
     (incident) => incident.status !== 'Resolved',
@@ -25,15 +26,18 @@ function AssignIncidentForm({
   async function submit(event: FormEvent) {
     event.preventDefault()
     setMessage('')
+    setMessageType('')
     setBusy(true)
 
     try {
       await onAssign(Number(userId), Number(incidentId))
       setMessage('Incident assigned successfully.')
+      setMessageType('success')
       setUserId('')
       setIncidentId('')
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'Assignment failed.')
+      setMessageType('error')
     } finally {
       setBusy(false)
     }
@@ -78,7 +82,15 @@ function AssignIncidentForm({
         </label>
       </div>
 
-      {message && <p role="status">{message}</p>}
+      {message && (
+        <p
+          className={`form-message form-message-${messageType}`}
+          role={messageType === 'error' ? 'alert' : 'status'}
+          aria-live="polite"
+        >
+          {message}
+        </p>
+      )}
 
       <button type="submit" disabled={busy}>
         {busy ? 'Assigning...' : 'Assign incident'}

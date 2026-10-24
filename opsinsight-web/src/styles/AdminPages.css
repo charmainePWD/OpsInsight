@@ -59,9 +59,9 @@
 .login-form label,
 .admin-form label {
   display: grid;
-  gap: 7px;
+  gap: 5px;
   color: #526078;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 650;
 }
 
@@ -70,14 +70,15 @@
 .admin-form select,
 .panel td select {
   width: 100%;
+  height: 32px;
   min-width: 0;
-  padding: 10px 11px;
+  padding: 0 8px;
   border: 1px solid #dce3ed;
-  border-radius: 7px;
+  border-radius: 6px;
   background: #fff;
   color: #28364d;
   font: inherit;
-  font-size: 13px;
+  font-size: 11px;
 }
 
 .login-form input:focus,
@@ -90,15 +91,15 @@
 
 .login-form button,
 .admin-form > button {
-  min-height: 40px;
+  min-height: 34px;
   margin-top: 8px;
-  padding: 9px 14px;
+  padding: 7px 12px;
   border: 0;
-  border-radius: 7px;
+  border-radius: 6px;
   background: #3e70dc;
   color: #fff;
   font: inherit;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 650;
   cursor: pointer;
 }
@@ -122,10 +123,25 @@
   margin-top: 16px;
 }
 
+.admin-form .panel-heading {
+  justify-content: flex-start;
+}
+
+.admin-form .form-grid {
+  margin-right: 22px;
+  margin-left: 22px;
+}
+
+.admin-form > button {
+  margin-right: 22px;
+  margin-bottom: 22px;
+  margin-left: 22px;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  gap: 12px;
   margin: 18px 0 10px;
 }
 
@@ -178,6 +194,25 @@
   font-size: 12px;
 }
 
+.form-message {
+  margin: 2px 22px 10px;
+  padding: 9px 11px;
+  border-radius: 7px;
+  font-size: 12px;
+}
+
+.form-message-success {
+  border: 1px solid #ccebdd;
+  background: #effaf4;
+  color: #238261;
+}
+
+.form-message-error {
+  border: 1px solid #f2d3d6;
+  background: #fff3f3;
+  color: #b73f4d;
+}
+
 @media (max-width: 650px) {
   .login-card {
     padding: 24px;
@@ -185,5 +220,16 @@
 
   .form-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-form .form-grid,
+  .admin-form > button {
+    margin-right: 14px;
+    margin-left: 14px;
+  }
+
+  .admin-form .form-message {
+    margin-right: 14px;
+    margin-left: 14px;
   }
 }

@@ -34,6 +34,7 @@ function App() {
   const { user, loading, checkEmail, login, logout } = useAuth()
   const [activePage, setActivePage] = useState<Page>('overview')
   const [logoutError, setLogoutError] = useState('')
+  const [showProfileMenu, setShowProfileMenu] = useState(false)
 
   if (loading) {
     return <div className="loading-state">Loading OpsInsight...</div>
@@ -95,17 +96,30 @@ function App() {
               <strong>{user.name} {user.surname}</strong>
               <span>{user.permission}</span>
             </div>
+            <div className="profile-menu">
+              <button
+                type="button"
+                className="profile-menu-button"
+                aria-label="Open profile menu"
+                aria-expanded={showProfileMenu}
+                onClick={() => setShowProfileMenu((visible) => !visible)}
+              >
+                ⋮
+              </button>
+              {showProfileMenu && (
+                <div className="profile-menu-options">
+                  <button
+                    type="button"
+                    className="logout-button"
+                    onClick={() => void handleLogout()}
+                  >
+                    Sign out
+                  </button>
+                  {logoutError && <p className="notice-error">{logoutError}</p>}
+                </div>
+              )}
+            </div>
           </div>
-
-          <button
-            type="button"
-            className="logout-button"
-            onClick={() => void handleLogout()}
-          >
-            Sign out
-          </button>
-
-          {logoutError && <p className="notice-error">{logoutError}</p>}
         </div>
       </aside>
 

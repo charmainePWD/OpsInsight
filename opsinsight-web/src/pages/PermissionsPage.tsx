@@ -13,6 +13,7 @@ function PermissionsPage({ currentUser }: PermissionsPageProps) {
   const isAdmin = currentUser.permission === 'Administrator'
   const { users, loading, error, addUser, updatePermission } = useUsers(true)
   const [actionError, setActionError] = useState('')
+  const [showAddUserForm, setShowAddUserForm] = useState(false)
 
   async function safeUpdate(id: number, permission: User['permission']) {
     setActionError('')
@@ -31,9 +32,17 @@ function PermissionsPage({ currentUser }: PermissionsPageProps) {
           <h1>Permissions</h1>
           <p>Manage team access and review permission levels.</p>
         </div>
-        <div className="page-count">
-          <strong>{loading ? '—' : users.length}</strong>
-          <span>registered users</span>
+        <div className="page-actions">
+          {isAdmin && (
+            <button
+              type="button"
+              className="page-action-button"
+              aria-expanded={showAddUserForm}
+              onClick={() => setShowAddUserForm((visible) => !visible)}
+            >
+              {showAddUserForm ? 'Close form' : 'Add user'}
+            </button>
+          )}
         </div>
       </section>
 
@@ -48,7 +57,7 @@ function PermissionsPage({ currentUser }: PermissionsPageProps) {
         updatePermission={safeUpdate}
       />
 
-      {isAdmin && <AddUserForm onAdd={addUser} />}
+      {isAdmin && showAddUserForm && <AddUserForm onAdd={addUser} />}
 
       <footer>OpsInsight <span>·</span> Access management</footer>
     </>
