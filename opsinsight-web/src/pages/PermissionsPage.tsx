@@ -48,6 +48,13 @@ function PermissionsPage({ currentUser }: PermissionsPageProps) {
 
       {actionError && <p className="notice-error" role="alert">{actionError}</p>}
 
+      {isAdmin && 
+      showAddUserForm && 
+      <AddUserForm onAdd={addUser}
+       />
+      }
+
+
       <UserTable
         users={users}
         loading={loading}
@@ -57,7 +64,10 @@ function PermissionsPage({ currentUser }: PermissionsPageProps) {
         updatePermission={safeUpdate}
       />
 
-      {isAdmin && showAddUserForm && <AddUserForm onAdd={addUser} />}
+      {/* {isAdmin && 
+      showAddUserForm && 
+      <AddUserForm onAdd={addUser}
+       />} */}
 
       <footer>OpsInsight <span>·</span> Access management</footer>
     </>

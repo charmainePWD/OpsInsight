@@ -44,13 +44,14 @@ nav { display: grid; gap: 5px; }
 .nav-item.active { color: white; background: #263a59; box-shadow: inset 3px 0 #6990ff; }
 .nav-item b { margin-left: auto; background: #c45c4d; color: white; border-radius: 5px; font-size: 10px; padding: 3px 7px; }
 .sidebar-bottom { margin-top: auto; }
-.environment { border: 1px solid #2b3a50; border-radius: 7px; padding: 11px 9px; font-size: 9px; letter-spacing: 1px; color: #a8b6c9; display: flex; align-items: center; gap: 8px; }
+.environment { border: 1px solid #2b3a50; border-radius: 7px; padding: 6px 9px; font-size: 9px; letter-spacing: 1px; color: #a8b6c9; display: flex; align-items: center; gap: 8px; }
 .live-dot { display: inline-block; flex: 0 0 auto; width: 7px; height: 7px; background: #32bd88; border-radius: 50%; }
-.profile { border-top: 1px solid #29364a; margin-top: 16px; padding: 17px 3px 0; display: flex; align-items: center; gap: 10px; }
-.avatar, .top-avatar { display: grid; place-items: center; background: #334765; color: white; border-radius: 50%; width: 34px; height: 34px; font-size: 11px; font-weight: 700; }
+.profile { border-top: 1px solid #29364a; margin-top: 16px; padding: 2px 0px 0 0; display: flex; align-items: center; gap: 10px; }
+.avatar, .top-avatar { display: grid; place-items: center; background: #334765; color: white; border-radius: 50%; width: 34px; height: 34px; font-size: 10px; font-weight: 700; }
 .profile strong, .profile span { display: block; }
-.profile strong { color: white; font-size: 11px; }
-.profile span { color: #8f9eb3; font-size: 10px; margin-top: 4px; }
+.profile strong { color: white; font-size: 11px;}
+.profile span { color: #8f9eb3; font-size: 10px; margin-top: 0px;}
+.profile-menu-button {color: #fff; background: #101a2b;}
 
 .main-content { margin-left: 244px; padding: 0 38px 22px; width: calc(100% - 244px); }
 .topbar { height: 55px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #000000; font-size: 12px; color: #dadfe7; }

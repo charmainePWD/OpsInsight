@@ -38,8 +38,13 @@ function AddUserForm({ onAdd }: AddUserFormProps) {
       setMessage(err instanceof Error ? err.message : 'Could not create user.')
     } finally {
       setBusy(false)
+      
     }
   }
+
+    function setShowAddUserForm(arg0: (visible: any) => boolean) {
+        throw new Error('Function not implemented.')
+    }
 
   return (
     <form className="panel admin-form" onSubmit={submit}>
