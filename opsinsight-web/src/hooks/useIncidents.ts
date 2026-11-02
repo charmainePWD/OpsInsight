@@ -1,8 +1,9 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import type { Incident } from '../types'
+import { API_BASE_URL } from '../config/api'
 
-const API_URL = 'http://localhost:5092/api/incidents'
+const API_URL = `${API_BASE_URL}/incidents`
 
 type IncidentStatus = Incident['status']
 
@@ -13,7 +14,9 @@ export function useIncidents() {
 
   const loadIncidents = useCallback(async () => {
     try {
-      const response = await fetch(API_URL)
+      const response = await fetch(API_URL, {
+        credentials: 'include',
+      })
 
       if (!response.ok) {
         throw new Error(`Failed to load incidents: ${response.status}`)
@@ -39,6 +42,7 @@ export function useIncidents() {
     async (id: number, status: IncidentStatus) => {
       const response = await fetch(`${API_URL}/${id}/status`, {
         method: 'PATCH',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -56,10 +60,10 @@ export function useIncidents() {
         current.map((incident) =>
           incident.id === updated.id
             ? {
-                ...incident,
-                status: updated.status,
-                resolvedAt: updated.resolvedAt,
-              }
+              ...incident,
+              status: updated.status,
+              resolvedAt: updated.resolvedAt,
+            }
             : incident,
         ),
       )

@@ -1,8 +1,9 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import type { Assignment, Incident, User } from '../types'
+import { API_BASE_URL } from '../config/api'
 
-const API = 'http://localhost:5092/api'
+const API = `${API_BASE_URL}/assignments`
 
 export function useAssignments(enabled: boolean) {
   const [assignments, setAssignments] = useState<Assignment[]>([])
@@ -20,14 +21,22 @@ export function useAssignments(enabled: boolean) {
     try {
       const [assignmentResponse, userResponse, incidentResponse] =
         await Promise.all([
-          fetch(`${API}/assignments`, { credentials: 'include' }),
-          fetch(`${API}/users`, { credentials: 'include' }),
-          fetch(`${API}/incidents`, { credentials: 'include' }),
+          fetch(API, { credentials: 'include' }),
+          fetch(`${API_BASE_URL}/users`, { credentials: 'include' }),
+          fetch(`${API_BASE_URL}/incidents`, { credentials: 'include' }),
         ])
 
-      if (!assignmentResponse.ok) throw new Error('Could not load assignments.')
-      if (!userResponse.ok) throw new Error('Could not load users.')
-      if (!incidentResponse.ok) throw new Error('Could not load incidents.')
+      if (!assignmentResponse.ok) {
+        throw new Error('Could not load assignments.')
+      }
+
+      if (!userResponse.ok) {
+        throw new Error('Could not load users.')
+      }
+
+      if (!incidentResponse.ok) {
+        throw new Error('Could not load incidents.')
+      }
 
       const [assignmentData, userData, incidentData] = await Promise.all([
         assignmentResponse.json(),
@@ -39,7 +48,11 @@ export function useAssignments(enabled: boolean) {
       setUsers(userData as User[])
       setIncidents(incidentData as Incident[])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not load assignments.')
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Could not load assignments.',
+      )
     } finally {
       setLoading(false)
     }
@@ -50,7 +63,7 @@ export function useAssignments(enabled: boolean) {
   }, [load])
 
   async function assignIncident(userId: number, incidentId: number) {
-    const response = await fetch(`${API}/assignments`, {
+    const response = await fetch(API, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -58,6 +71,7 @@ export function useAssignments(enabled: boolean) {
     })
 
     const result = await response.json()
+
     if (!response.ok) {
       throw new Error(result.message ?? 'Could not assign incident.')
     }
@@ -66,12 +80,15 @@ export function useAssignments(enabled: boolean) {
   }
 
   async function unassign(id: number) {
-    const response = await fetch(`${API}/assignments/${id}/unassign`, {
+    const response = await fetch(`${API}/${id}/unassign`, {
       method: 'PATCH',
       credentials: 'include',
     })
 
-    if (!response.ok) throw new Error('Could not close assignment.')
+    if (!response.ok) {
+      throw new Error('Could not close assignment.')
+    }
+
     await load()
   }
 

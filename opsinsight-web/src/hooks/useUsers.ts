@@ -1,8 +1,9 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import type { Permission, User } from '../types'
+import { API_BASE_URL } from '../config/api'
 
-const API = 'http://localhost:5092/api/users'
+const API = `${API_BASE_URL}/users`
 
 export function useUsers(enabled: boolean) {
   const [users, setUsers] = useState<User[]>([])

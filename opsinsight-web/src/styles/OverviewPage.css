@@ -24,7 +24,7 @@
   display: flex;
   padding-top: 10px;
   align-items: center;
-  text-align = center;
+  text-align : center;
   justify-content: space-between;
   gap: 12px;
   min-height: 38px;

@@ -1,8 +1,9 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import type { User } from '../types'
+import { API_BASE_URL } from '../config/api'
 
-const API = 'http://localhost:5092/api/auth'
+const API = `${API_BASE_URL}/auth`
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)

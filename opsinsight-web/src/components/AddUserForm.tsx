@@ -42,9 +42,6 @@ function AddUserForm({ onAdd }: AddUserFormProps) {
     }
   }
 
-    function setShowAddUserForm(arg0: (visible: any) => boolean) {
-        throw new Error('Function not implemented.')
-    }
 
   return (
     <form className="panel admin-form" onSubmit={submit}>

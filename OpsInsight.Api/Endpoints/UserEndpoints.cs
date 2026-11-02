@@ -96,17 +96,19 @@ public static class UserEndpoints
             var currentId = context.User.FindFirst(
                 System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
-            if (currentId == id.ToString() &&
-                request.Permission != "Administrator")
+            if (user.Permission == "Administrator" &&
+                request.Permission == "Viewer")
             {
                 var admins = await db.Users.CountAsync(
                     item => item.Permission == "Administrator");
 
                 if (admins <= 1)
+                {
                     return Results.BadRequest(new
                     {
                         message = "You cannot remove the last administrator."
                     });
+                }
             }
 
             user.Permission = request.Permission;

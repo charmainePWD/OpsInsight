@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 using OpsInsight.Api.Data;
 using OpsInsight.Api.Models;
 using Microsoft.AspNetCore.Routing;
@@ -19,13 +20,13 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins("http://localhost:5173", "http://localhost:5174")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
     });
 });
-
+// Add the OpsInsightDbContext with SQL Server provider.
 builder.Services.AddDbContext<OpsInsightDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("OpsInsightDb")));
@@ -39,6 +40,41 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
         options.SlidingExpiration = true;
+        //Fixing stale claims issue by validating the principal on each request and updating the claims if necessary.
+        options.Events.OnValidatePrincipal = async context =>
+    {
+        var idValue = context.Principal?.FindFirstValue(
+            ClaimTypes.NameIdentifier);
+
+        if (!int.TryParse(idValue, out var id))
+        {
+            context.RejectPrincipal();
+            return;
+        }
+
+        var db = context.HttpContext.RequestServices
+            .GetRequiredService<OpsInsightDbContext>();
+
+        var user = await db.Users.FindAsync(id);
+
+        if (user is null)
+        {
+            context.RejectPrincipal();
+            return;
+        }
+
+        var identity = new ClaimsIdentity(context.Principal!.Identity);
+
+        foreach (var claim in identity.FindAll(ClaimTypes.Role).ToList())
+        {
+            identity.RemoveClaim(claim);
+        }
+
+        identity.AddClaim(new Claim(ClaimTypes.Role, user.Permission));
+
+        context.ReplacePrincipal(new ClaimsPrincipal(identity));
+        context.ShouldRenew = true;
+    };
 
         options.Events.OnRedirectToLogin = context =>
         {
@@ -122,7 +158,7 @@ app.MapGet("/weatherforecast", () =>
 })
 .WithName("GetWeatherForecast");
 
-
+// Map the endpoints for services, incidents, and other resources.
 app.MapGet("/api/services", async (OpsInsightDbContext db) =>
 {
     var services = await db.Services
@@ -132,6 +168,7 @@ app.MapGet("/api/services", async (OpsInsightDbContext db) =>
 
     return Results.Ok(services);
 })
+.RequireAuthorization()
 .WithName("GetServices");
 
 app.MapGet("/api/incidents", async (OpsInsightDbContext db) =>
@@ -156,6 +193,7 @@ app.MapGet("/api/incidents", async (OpsInsightDbContext db) =>
 
     return Results.Ok(incidents);
 })
+.RequireAuthorization()
 .WithName("GetIncidents");
 
 app.MapPatch("/api/incidents/{id:int}/resolve", async (
@@ -184,6 +222,7 @@ app.MapPatch("/api/incidents/{id:int}/resolve", async (
         incident.ResolvedAt
     });
 })
+.RequireAuthorization()
 .WithName("ResolveIncident");
 
 
@@ -232,6 +271,7 @@ app.MapPatch("/api/incidents/{id:int}/status", async (
         incident.ResolvedAt
     });
 })
+.RequireAuthorization()
 .WithName("UpdateIncidentStatus");
 
 app.MapGet("/api/debug/routes", (IEnumerable<EndpointDataSource> sources) =>

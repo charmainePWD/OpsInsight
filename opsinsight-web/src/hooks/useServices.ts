@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { Service } from '../types'
+import { API_BASE_URL } from '../config/api'
 
-const API_URL = 'http://localhost:5092/api/services'
+const API_URL = `${API_BASE_URL}/services`
 
 export function useServices() {
   const [services, setServices] = useState<Service[]>([])
@@ -10,7 +11,9 @@ export function useServices() {
 
   const loadServices = useCallback(async () => {
     try {
-      const response = await fetch(API_URL)
+      const response = await fetch(API_URL, {
+        credentials: 'include',
+      })
 
       if (!response.ok) {
         throw new Error(`Failed to load services: ${response.status}`)
