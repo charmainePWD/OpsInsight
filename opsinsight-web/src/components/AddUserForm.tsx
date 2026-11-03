@@ -17,7 +17,7 @@ function AddUserForm({ onAdd }: AddUserFormProps) {
   const [surname, setSurname] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [permission, setPermission] = useState<Permission>('Viewer')
+  const [permission, setPermission] = useState<Permission>('Contributor')
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
 
@@ -32,7 +32,7 @@ function AddUserForm({ onAdd }: AddUserFormProps) {
       setSurname('')
       setEmail('')
       setPassword('')
-      setPermission('Viewer')
+      setPermission('Contributor')
       setMessage('User created successfully.')
     } catch (err) {
       setMessage(err instanceof Error ? err.message : 'Could not create user.')
@@ -91,7 +91,7 @@ function AddUserForm({ onAdd }: AddUserFormProps) {
             value={permission}
             onChange={(e) => setPermission(e.target.value as Permission)}
           >
-            <option value="Viewer">Viewer</option>
+            <option value="Contributor">Contributor</option>
             <option value="Administrator">Administrator</option>
           </select>
         </label>

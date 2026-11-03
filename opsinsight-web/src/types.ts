@@ -22,7 +22,7 @@ export type Incident = {
   resolvedAt: string | null
 }
 
-export type Permission = 'Administrator' | 'Viewer'
+export type Permission = 'Administrator' | 'Contributor' 
 
 export type User = {
   id: number

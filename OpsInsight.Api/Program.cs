@@ -213,6 +213,21 @@ app.MapPatch("/api/incidents/{id:int}/resolve", async (
     incident.Status = "Resolved";
     incident.ResolvedAt = DateTime.UtcNow;
 
+    // Automatically close the active assignment, if one exists.
+    var activeAssignment = await db.Assignments
+        .FirstOrDefaultAsync(assignment =>
+            assignment.IncidentId == incident.Id &&
+            assignment.UnassignedAt == null);
+
+    if (activeAssignment is not null)
+    {
+        activeAssignment.Status = "Closed";
+        activeAssignment.ClosureReason = "Resolved";
+        activeAssignment.UnassignedAt = DateTime.UtcNow;
+        activeAssignment.ClosureNotes =
+            "Incident resolved; assignment automatically closed.";
+    }
+
     await db.SaveChangesAsync();
 
     return Results.Ok(new
@@ -261,6 +276,24 @@ app.MapPatch("/api/incidents/{id:int}/status", async (
     incident.ResolvedAt = request.Status == "Resolved"
         ? incident.ResolvedAt ?? DateTime.UtcNow
         : null;
+
+    // Close the active assignment whenever the incident is resolved.
+    if (request.Status == "Resolved")
+    {
+        var activeAssignment = await db.Assignments
+            .FirstOrDefaultAsync(assignment =>
+                assignment.IncidentId == incident.Id &&
+                assignment.UnassignedAt == null);
+
+        if (activeAssignment is not null)
+        {
+            activeAssignment.Status = "Closed";
+            activeAssignment.ClosureReason = "Resolved";
+            activeAssignment.UnassignedAt = DateTime.UtcNow;
+            activeAssignment.ClosureNotes =
+                "Incident resolved; assignment automatically closed.";
+        }
+    }
 
     await db.SaveChangesAsync();
 

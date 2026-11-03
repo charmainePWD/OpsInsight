@@ -85,7 +85,7 @@ public static class UserEndpoints
             OpsInsightDbContext db,
             HttpContext context) =>
         {
-            if (request.Permission is not ("Administrator" or "Viewer"))
+            if (request.Permission is not ("Administrator" or "Contributor"))
                 return Results.BadRequest(new { message = "Invalid permission." });
 
             var user = await db.Users.FindAsync(id);
@@ -97,7 +97,7 @@ public static class UserEndpoints
                 System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
             if (user.Permission == "Administrator" &&
-                request.Permission == "Viewer")
+                request.Permission == "Contributor")
             {
                 var admins = await db.Users.CountAsync(
                     item => item.Permission == "Administrator");
