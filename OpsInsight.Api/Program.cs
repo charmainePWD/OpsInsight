@@ -1,3 +1,4 @@
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
@@ -8,8 +9,6 @@ using Microsoft.AspNetCore.Routing.Patterns;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using OpsInsight.Api.Endpoints;
-
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,13 +25,13 @@ builder.Services.AddCors(options =>
               .AllowCredentials();
     });
 });
-// Add the OpsInsightDbContext with SQL Server provider.
+
 builder.Services.AddDbContext<OpsInsightDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("OpsInsightDb")));
 
-
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
     {
         options.Cookie.Name = "OpsInsight.Auth";
         options.Cookie.HttpOnly = true;
@@ -40,41 +39,41 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
         options.SlidingExpiration = true;
-        //Fixing stale claims issue by validating the principal on each request and updating the claims if necessary.
+
         options.Events.OnValidatePrincipal = async context =>
-    {
-        var idValue = context.Principal?.FindFirstValue(
-            ClaimTypes.NameIdentifier);
-
-        if (!int.TryParse(idValue, out var id))
         {
-            context.RejectPrincipal();
-            return;
-        }
+            var idValue = context.Principal?.FindFirstValue(
+                ClaimTypes.NameIdentifier);
 
-        var db = context.HttpContext.RequestServices
-            .GetRequiredService<OpsInsightDbContext>();
+            if (!int.TryParse(idValue, out var id))
+            {
+                context.RejectPrincipal();
+                return;
+            }
 
-        var user = await db.Users.FindAsync(id);
+            var db = context.HttpContext.RequestServices
+                .GetRequiredService<OpsInsightDbContext>();
 
-        if (user is null)
-        {
-            context.RejectPrincipal();
-            return;
-        }
+            var user = await db.Users.FindAsync(id);
 
-        var identity = new ClaimsIdentity(context.Principal!.Identity);
+            if (user is null)
+            {
+                context.RejectPrincipal();
+                return;
+            }
 
-        foreach (var claim in identity.FindAll(ClaimTypes.Role).ToList())
-        {
-            identity.RemoveClaim(claim);
-        }
+            var identity = new ClaimsIdentity(context.Principal!.Identity);
 
-        identity.AddClaim(new Claim(ClaimTypes.Role, user.Permission));
+            foreach (var claim in identity.FindAll(ClaimTypes.Role).ToList())
+            {
+                identity.RemoveClaim(claim);
+            }
 
-        context.ReplacePrincipal(new ClaimsPrincipal(identity));
-        context.ShouldRenew = true;
-    };
+            identity.AddClaim(new Claim(ClaimTypes.Role, user.Permission));
+
+            context.ReplacePrincipal(new ClaimsPrincipal(identity));
+            context.ShouldRenew = true;
+        };
 
         options.Events.OnRedirectToLogin = context =>
         {
@@ -95,37 +94,7 @@ builder.Services.AddAuthorization(options =>
         policy.RequireRole("Administrator"));
 });
 
-
 var app = builder.Build();
-
-// TEMPORARY: replace demo placeholder passwords with real password hashes.
-// using (var scope = app.Services.CreateScope())
-// {
-//     var db = scope.ServiceProvider
-//         .GetRequiredService<OpsInsightDbContext>();
-
-//     var users = await db.Users
-//         .Where(user => user.PasswordHash == "DEMO_HASH_REPLACE_BEFORE_LOGIN")
-//         .ToListAsync();
-
-//     var hasher = new PasswordHasher<User>();
-
-//     foreach (var user in users)
-//     {
-//         user.PasswordHash = hasher.HashPassword(
-//             user,
-//             "OpsInsight!2026"
-//         );
-//     }
-
-//     if (users.Count > 0)
-//     {
-//         await db.SaveChangesAsync();
-//         Console.WriteLine(
-//             $"Created password hashes for {users.Count} demo users."
-//         );
-//     }
-// }
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -138,27 +107,10 @@ app.UseCors("ReactFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild",
-    "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+// =========================================================
+// SERVICES
+// =========================================================
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast(
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
-// Map the endpoints for services, incidents, and other resources.
 app.MapGet("/api/services", async (OpsInsightDbContext db) =>
 {
     var services = await db.Services
@@ -171,11 +123,21 @@ app.MapGet("/api/services", async (OpsInsightDbContext db) =>
 .RequireAuthorization()
 .WithName("GetServices");
 
-app.MapGet("/api/incidents", async (OpsInsightDbContext db) =>
+// =========================================================
+// GET INCIDENTS
+// Includes current assignment information.
+// =========================================================
+
+app.MapGet("/api/incidents", async (
+    ClaimsPrincipal principal,
+    OpsInsightDbContext db) =>
 {
+    int.TryParse(
+        principal.FindFirstValue(ClaimTypes.NameIdentifier),
+        out var currentUserId);
+
     var incidents = await db.Incidents
         .AsNoTracking()
-        .Include(incident => incident.Service)
         .OrderByDescending(incident => incident.CreatedAt)
         .Select(incident => new
         {
@@ -187,19 +149,85 @@ app.MapGet("/api/incidents", async (OpsInsightDbContext db) =>
             incident.Severity,
             incident.Status,
             incident.CreatedAt,
-            incident.ResolvedAt
+            incident.ResolvedAt,
+
+            Assignment = db.Assignments
+                .Where(assignment =>
+                    assignment.IncidentId == incident.Id &&
+                    assignment.UnassignedAt == null)
+                .Select(assignment => new
+                {
+                    assignment.Id,
+                    assignment.UserId,
+
+                    AssignedTo = assignment.User!.Name +
+                        " " + assignment.User.Surname,
+
+                    AssignedBy = assignment.AssignedByUser == null
+                        ? "System"
+                        : assignment.AssignedByUser.Name +
+                          " " + assignment.AssignedByUser.Surname,
+
+                    assignment.AssignedAt,
+                    assignment.Status
+                })
+                .FirstOrDefault()
         })
         .ToListAsync();
 
-    return Results.Ok(incidents);
+    var result = incidents.Select(incident => new
+    {
+        incident.Id,
+        incident.ServiceId,
+        incident.ServiceName,
+        incident.Title,
+        incident.Description,
+        incident.Severity,
+        incident.Status,
+        incident.CreatedAt,
+        incident.ResolvedAt,
+
+        AssignmentId = incident.Assignment?.Id,
+        AssignedUserId = incident.Assignment?.UserId,
+        AssignedTo = incident.Assignment?.AssignedTo,
+        AssignedBy = incident.Assignment?.AssignedBy,
+        AssignedAt = incident.Assignment?.AssignedAt,
+        AssignmentStatus = incident.Assignment?.Status,
+
+        IsAssignedToCurrentUser =
+            incident.Assignment != null &&
+            incident.Assignment.UserId == currentUserId
+    });
+
+    return Results.Ok(result);
 })
 .RequireAuthorization()
 .WithName("GetIncidents");
 
+// =========================================================
+// SHARED STATUS AUTHORIZATION
+// Administrators: any incident.
+// Contributors: only their own active assignments.
+// =========================================================
+
+// =========================================================
+// RESOLVE INCIDENT
+// =========================================================
+
 app.MapPatch("/api/incidents/{id:int}/resolve", async (
     int id,
+    ClaimsPrincipal principal,
     OpsInsightDbContext db) =>
 {
+    var isAdmin = principal.IsInRole("Administrator");
+
+    if (!int.TryParse(
+        principal.FindFirstValue(ClaimTypes.NameIdentifier),
+        out var currentUserId))
+    {
+        return Results.Unauthorized();
+    }
+
     var incident = await db.Incidents.FindAsync(id);
 
     if (incident is null)
@@ -210,17 +238,34 @@ app.MapPatch("/api/incidents/{id:int}/resolve", async (
         });
     }
 
-    incident.Status = "Resolved";
-    incident.ResolvedAt = DateTime.UtcNow;
-
-    // Automatically close the active assignment, if one exists.
     var activeAssignment = await db.Assignments
         .FirstOrDefaultAsync(assignment =>
             assignment.IncidentId == incident.Id &&
             assignment.UnassignedAt == null);
 
+    if (!isAdmin)
+    {
+        if (activeAssignment is null ||
+            activeAssignment.UserId != currentUserId ||
+            activeAssignment.Status != "Active")
+        {
+            return Results.Forbid();
+        }
+    }
+
+    incident.Status = "Resolved";
+    incident.ResolvedAt = DateTime.UtcNow;
+
     if (activeAssignment is not null)
     {
+        if (activeAssignment.Status == "PendingAbandonment")
+        {
+            return Results.Conflict(new
+            {
+                message = "Review the pending abandonment request before resolving this incident."
+            });
+        }
+
         activeAssignment.Status = "Closed";
         activeAssignment.ClosureReason = "Resolved";
         activeAssignment.UnassignedAt = DateTime.UtcNow;
@@ -240,10 +285,14 @@ app.MapPatch("/api/incidents/{id:int}/resolve", async (
 .RequireAuthorization()
 .WithName("ResolveIncident");
 
+// =========================================================
+// UPDATE INCIDENT STATUS
+// =========================================================
 
 app.MapPatch("/api/incidents/{id:int}/status", async (
     int id,
     UpdateIncidentStatusRequest request,
+    ClaimsPrincipal principal,
     OpsInsightDbContext db) =>
 {
     var allowedStatuses = new[]
@@ -262,6 +311,15 @@ app.MapPatch("/api/incidents/{id:int}/status", async (
         });
     }
 
+    if (!int.TryParse(
+        principal.FindFirstValue(ClaimTypes.NameIdentifier),
+        out var currentUserId))
+    {
+        return Results.Unauthorized();
+    }
+
+    var isAdmin = principal.IsInRole("Administrator");
+
     var incident = await db.Incidents.FindAsync(id);
 
     if (incident is null)
@@ -272,27 +330,48 @@ app.MapPatch("/api/incidents/{id:int}/status", async (
         });
     }
 
+    var activeAssignment = await db.Assignments
+        .FirstOrDefaultAsync(assignment =>
+            assignment.IncidentId == incident.Id &&
+            assignment.UnassignedAt == null);
+
+    // Contributors can only update their own active assignments.
+    if (!isAdmin)
+    {
+        if (activeAssignment is null ||
+            activeAssignment.UserId != currentUserId ||
+            activeAssignment.Status != "Active")
+        {
+            return Results.Forbid();
+        }
+    }
+
+    // Do not resolve an incident while its abandonment
+    // request is still waiting for administrator review.
+    if (request.Status == "Resolved" &&
+        activeAssignment?.Status == "PendingAbandonment")
+    {
+        return Results.Conflict(new
+        {
+            message = "Review the pending abandonment request before resolving this incident."
+        });
+    }
+
     incident.Status = request.Status;
+
     incident.ResolvedAt = request.Status == "Resolved"
         ? incident.ResolvedAt ?? DateTime.UtcNow
         : null;
 
-    // Close the active assignment whenever the incident is resolved.
-    if (request.Status == "Resolved")
+    // Automatically close the active assignment when resolved.
+    if (request.Status == "Resolved" &&
+        activeAssignment is not null)
     {
-        var activeAssignment = await db.Assignments
-            .FirstOrDefaultAsync(assignment =>
-                assignment.IncidentId == incident.Id &&
-                assignment.UnassignedAt == null);
-
-        if (activeAssignment is not null)
-        {
-            activeAssignment.Status = "Closed";
-            activeAssignment.ClosureReason = "Resolved";
-            activeAssignment.UnassignedAt = DateTime.UtcNow;
-            activeAssignment.ClosureNotes =
-                "Incident resolved; assignment automatically closed.";
-        }
+        activeAssignment.Status = "Closed";
+        activeAssignment.ClosureReason = "Resolved";
+        activeAssignment.UnassignedAt = DateTime.UtcNow;
+        activeAssignment.ClosureNotes =
+            "Incident resolved; assignment automatically closed.";
     }
 
     await db.SaveChangesAsync();
@@ -307,12 +386,21 @@ app.MapPatch("/api/incidents/{id:int}/status", async (
 .RequireAuthorization()
 .WithName("UpdateIncidentStatus");
 
-app.MapGet("/api/debug/routes", (IEnumerable<EndpointDataSource> sources) =>
+// =========================================================
+// DEBUG ROUTES
+// =========================================================
+
+app.MapGet("/api/debug/routes", (
+    IEnumerable<EndpointDataSource> sources) =>
     sources.SelectMany(source => source.Endpoints)
         .OfType<RouteEndpoint>()
         .Select(endpoint => endpoint.RoutePattern.RawText)
         .Where(route => route is not null)
         .OrderBy(route => route));
+
+// =========================================================
+// OTHER ENDPOINT GROUPS
+// =========================================================
 
 app.MapAuthEndpoints();
 app.MapUserEndpoints();

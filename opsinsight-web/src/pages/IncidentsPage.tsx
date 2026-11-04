@@ -1,13 +1,18 @@
-
+import type { User } from '../types'
 import IncidentTable from '../components/IncidentTable'
 import { useIncidents } from '../hooks/useIncidents'
 
-function IncidentsPage() {
+type IncidentsPageProps = {
+  currentUser: User
+}
+
+function IncidentsPage({ currentUser }: IncidentsPageProps) {
   const {
     incidents,
     loading,
     error,
     updateIncidentStatus,
+    submitAbandonmentRequest,
   } = useIncidents()
 
   const activeCount = incidents.filter(
@@ -18,14 +23,20 @@ function IncidentsPage() {
     <>
       <section className="page-heading">
         <div>
-          <div className="eyebrow">RELIABILITY &amp; RESPONSE</div>
+          <div className="eyebrow">
+            RELIABILITY &amp; RESPONSE
+          </div>
+
           <h1>Incident management</h1>
-          <p>Track incidents and update their status as work progresses.</p>
+
+          <p>
+            Track incidents, review their details and manage incident progress.
+          </p>
         </div>
 
         <div className="page-count">
           <strong>{loading ? '—' : activeCount}</strong>
-          <span>active incidents!</span>
+          <span>active incidents</span>
         </div>
       </section>
 
@@ -33,7 +44,9 @@ function IncidentsPage() {
         incidents={incidents}
         loading={loading}
         error={error}
+        currentUser={currentUser}
         updateIncidentStatus={updateIncidentStatus}
+        submitAbandonmentRequest={submitAbandonmentRequest}
       />
 
       <footer>

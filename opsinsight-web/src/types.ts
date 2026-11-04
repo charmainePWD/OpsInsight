@@ -1,4 +1,3 @@
-
 export type ServiceStatus = 'Operational' | 'Degraded' | 'Down'
 
 export type Service = {
@@ -10,6 +9,12 @@ export type Service = {
   responseTimeMs: number
 }
 
+export type IncidentStatus =
+  | 'Open'
+  | 'Investigating'
+  | 'Monitoring'
+  | 'Resolved'
+
 export type Incident = {
   id: number
   serviceId: number
@@ -17,12 +22,21 @@ export type Incident = {
   title: string
   description: string | null
   severity: 'Critical' | 'High' | 'Medium' | 'Low'
-  status: 'Open' | 'Investigating' | 'Monitoring' | 'Resolved'
+  status: IncidentStatus
   createdAt: string
   resolvedAt: string | null
+
+  // Current assignment information
+  assignmentId: number | null
+  assignedUserId: number | null
+  assignedTo: string | null
+  assignedBy: string | null
+  assignedAt: string | null
+  assignmentStatus: string | null
+  isAssignedToCurrentUser: boolean
 }
 
-export type Permission = 'Administrator' | 'Contributor' 
+export type Permission = 'Administrator' | 'Contributor'
 
 export type User = {
   id: number
@@ -40,7 +54,7 @@ export type Assignment = {
   incidentId: number
   incidentTitle: string
   serviceName: string
-  incidentStatus: Incident['status']
+  incidentStatus: IncidentStatus
   assignedBy: string
   assignedAt: string
   unassignedAt: string | null

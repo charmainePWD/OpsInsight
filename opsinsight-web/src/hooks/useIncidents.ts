@@ -1,11 +1,9 @@
-
 import { useCallback, useEffect, useState } from 'react'
-import type { Incident } from '../types'
+import type { Incident, IncidentStatus } from '../types'
 import { API_BASE_URL } from '../config/api'
 
 const API_URL = `${API_BASE_URL}/incidents`
-
-type IncidentStatus = Incident['status']
+const ASSIGNMENTS_URL = `${API_BASE_URL}/assignments`
 
 export function useIncidents() {
   const [incidents, setIncidents] = useState<Incident[]>([])
@@ -23,6 +21,7 @@ export function useIncidents() {
       }
 
       const data: Incident[] = await response.json()
+
       setIncidents(data)
       setError(null)
     } catch (err) {
@@ -49,26 +48,44 @@ export function useIncidents() {
         body: JSON.stringify({ status }),
       })
 
+      const result = await response.json().catch(() => null)
+
       if (!response.ok) {
-        throw new Error(`Failed to update incident: ${response.status}`)
+        throw new Error(
+          result?.message ?? `Failed to update incident: ${response.status}`,
+        )
       }
 
-      const updated: Pick<Incident, 'id' | 'status' | 'resolvedAt'> =
-        await response.json()
-
-      setIncidents((current) =>
-        current.map((incident) =>
-          incident.id === updated.id
-            ? {
-              ...incident,
-              status: updated.status,
-              resolvedAt: updated.resolvedAt,
-            }
-            : incident,
-        ),
-      )
+      await loadIncidents()
     },
-    [],
+    [loadIncidents],
+  )
+
+  const submitAbandonmentRequest = useCallback(
+    async (assignmentId: number, reason: string) => {
+      const response = await fetch(
+        `${ASSIGNMENTS_URL}/${assignmentId}/abandonment-requests`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ reason }),
+        },
+      )
+
+      const result = await response.json().catch(() => null)
+
+      if (!response.ok) {
+        throw new Error(
+          result?.message ?? 'Could not submit the abandonment request.',
+        )
+      }
+
+      await loadIncidents()
+    },
+    [loadIncidents],
   )
 
   return {
@@ -76,6 +93,7 @@ export function useIncidents() {
     loading,
     error,
     updateIncidentStatus,
+    submitAbandonmentRequest,
     reloadIncidents: loadIncidents,
   }
 }

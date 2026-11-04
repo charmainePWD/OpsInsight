@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import './App.css'
 import './styles/AdminPages.css'
@@ -32,6 +31,7 @@ const navigation: {
 
 function App() {
   const { user, loading, checkEmail, login, logout } = useAuth()
+
   const [activePage, setActivePage] = useState<Page>('overview')
   const [logoutError, setLogoutError] = useState('')
   const [showProfileMenu, setShowProfileMenu] = useState(false)
@@ -44,10 +44,12 @@ function App() {
     return <LoginPage checkEmail={checkEmail} login={login} />
   }
 
-  const initials = `${user.name.charAt(0)}${user.surname.charAt(0)}`.toUpperCase()
+  const initials =
+    `${user.name.charAt(0)}${user.surname.charAt(0)}`.toUpperCase()
 
   async function handleLogout() {
     setLogoutError('')
+
     try {
       await logout()
     } catch (err) {
@@ -62,6 +64,7 @@ function App() {
       <aside className="sidebar">
         <div className="brand">
           <div className="brand-icon">O</div>
+
           <div>
             <strong>OpsInsight</strong>
             <span>OPERATIONS CENTER</span>
@@ -75,7 +78,9 @@ function App() {
             <button
               type="button"
               key={item.id}
-              className={`nav-item ${activePage === item.id ? 'active' : ''}`}
+              className={`nav-item ${
+                activePage === item.id ? 'active' : ''
+              }`}
               onClick={() => setActivePage(item.id)}
             >
               <span>{item.icon}</span>
@@ -92,20 +97,25 @@ function App() {
 
           <div className="profile">
             <div className="avatar">{initials}</div>
+
             <div className="profile-details">
               <strong>{user.name} {user.surname}</strong>
               <span>{user.permission}</span>
             </div>
+
             <div className="profile-menu">
               <button
                 type="button"
                 className="profile-menu-button"
                 aria-label="Open profile menu"
                 aria-expanded={showProfileMenu}
-                onClick={() => setShowProfileMenu((visible) => !visible)}
+                onClick={() =>
+                  setShowProfileMenu((visible) => !visible)
+                }
               >
                 ⋮
               </button>
+
               {showProfileMenu && (
                 <div className="profile-menu-options">
                   <button
@@ -115,7 +125,10 @@ function App() {
                   >
                     Sign out
                   </button>
-                  {logoutError && <p className="notice-error">{logoutError}</p>}
+
+                  {logoutError && (
+                    <p className="notice-error">{logoutError}</p>
+                  )}
                 </div>
               )}
             </div>
@@ -127,23 +140,39 @@ function App() {
         <header className="topbar">
           <div className="breadcrumb">
             Workspace <span>/</span>{' '}
-            {navigation.find((item) => item.id === activePage)?.label}
+            {navigation.find(
+              (item) => item.id === activePage,
+            )?.label}
           </div>
 
           <div className="topbar-right">
             <span className="live-dot" />
             Demo monitoring
-            <div className="top-avatar" title={`${user.name} — ${user.permission}`}>
+
+            <div
+              className="top-avatar"
+              title={`${user.name} — ${user.permission}`}
+            >
               {initials}
             </div>
           </div>
         </header>
 
         {activePage === 'overview' && <OverviewPage />}
+
         {activePage === 'services' && <ServicesPage />}
-        {activePage === 'incidents' && <IncidentsPage />}
-        {activePage === 'permissions' && <PermissionsPage currentUser={user} />}
-        {activePage === 'assignments' && <AssignmentsPage currentUser={user} />}
+
+        {activePage === 'incidents' && (
+          <IncidentsPage currentUser={user} />
+        )}
+
+        {activePage === 'permissions' && (
+          <PermissionsPage currentUser={user} />
+        )}
+
+        {activePage === 'assignments' && (
+          <AssignmentsPage currentUser={user} />
+        )}
       </main>
     </div>
   )

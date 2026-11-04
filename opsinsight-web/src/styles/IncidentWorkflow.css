@@ -1,0 +1,360 @@
+.incident-view-button {
+  padding: 7px 11px;
+  border: 1px solid #dce5f2;
+  border-radius: 6px;
+  background: #fff;
+  color: #456bc2;
+  font-size: 10px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.incident-view-button:hover {
+  background: #edf2ff;
+  border-color: #b9c9f8;
+}
+
+.incident-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgb(10 18 32 / 65%);
+  backdrop-filter: blur(3px);
+}
+
+.incident-modal-overlay-front {
+  z-index: 1010;
+}
+
+.incident-modal,
+.abandonment-modal {
+  width: min(680px, 100%);
+  max-height: min(88vh, 850px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #dce3ed;
+  border-radius: 13px;
+  background: #fff;
+  color: #303d51;
+  box-shadow: 0 24px 70px rgb(0 0 0 / 28%);
+}
+
+.incident-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 23px 25px 19px;
+  border-bottom: 1px solid #e9edf3;
+  background: #f8faff;
+}
+
+.incident-modal-reference {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: #5676c7;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 1.2px;
+}
+
+.incident-modal-header h2 {
+  margin: 0;
+  color: #202b3d;
+  font: 750 21px Manrope, sans-serif;
+  line-height: 1.35;
+}
+
+.incident-modal-header p {
+  margin-top: 5px;
+  color: #8290a4;
+  font-size: 11px;
+}
+
+.incident-modal-close {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #dfe5ee;
+  border-radius: 8px;
+  background: #fff;
+  color: #66748a;
+  font-size: 23px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.incident-modal-close:hover {
+  background: #edf2fa;
+  color: #29364a;
+}
+
+.incident-modal-content {
+  overflow-y: auto;
+  padding: 21px 25px;
+}
+
+.incident-modal-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 22px;
+}
+
+.request-pending-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  border-radius: 5px;
+  background: #fff3df;
+  color: #a66b16;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.incident-email-section,
+.incident-description-section,
+.incident-assignment-section {
+  margin-bottom: 23px;
+}
+
+.incident-email-section h3,
+.incident-description-section h3,
+.incident-assignment-section h3 {
+  margin: 0 0 12px;
+  color: #35445b;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: .4px;
+}
+
+.incident-email-row {
+  display: grid;
+  grid-template-columns: 125px minmax(0, 1fr);
+  gap: 14px;
+  padding: 9px 0;
+  border-bottom: 1px solid #edf0f5;
+  font-size: 11px;
+}
+
+.incident-email-row:last-child {
+  border-bottom: 0;
+}
+
+.incident-email-row > span {
+  color: #8a96a8;
+}
+
+.incident-email-row strong {
+  color: #35445b;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.incident-description-section p {
+  padding: 14px 15px;
+  border: 1px solid #e8edf4;
+  border-radius: 8px;
+  background: #fafbfd;
+  color: #5d6b80;
+  font-size: 12px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.incident-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 15px 25px;
+  border-top: 1px solid #e9edf3;
+  background: #fbfcfe;
+}
+
+.incident-modal-permission {
+  color: #8390a2;
+  font-size: 10px;
+}
+
+.incident-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.incident-modal-actions select {
+  min-height: 34px;
+  padding: 6px 9px;
+  border: 1px solid #dce3ed;
+  border-radius: 6px;
+  background: #fff;
+  color: #46566e;
+  font-size: 11px;
+}
+
+.incident-save-button,
+.incident-secondary-button,
+.incident-abandon-button {
+  min-height: 34px;
+  padding: 7px 11px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.incident-save-button {
+  background: #416ed5;
+  color: #fff;
+}
+
+.incident-save-button:hover:not(:disabled) {
+  background: #315bc0;
+}
+
+.incident-save-button:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+
+.incident-secondary-button {
+  border-color: #dce3ed;
+  background: #fff;
+  color: #596980;
+}
+
+.incident-secondary-button:hover:not(:disabled) {
+  background: #f1f4f9;
+}
+
+.incident-abandon-button {
+  border-color: #f0d4d4;
+  background: #fff6f5;
+  color: #b44d4d;
+}
+
+.incident-abandon-button:hover {
+  background: #ffebea;
+}
+
+.incident-modal-error {
+  margin: 12px 25px;
+  padding: 10px 12px;
+  border: 1px solid #f2d3d6;
+  border-radius: 7px;
+  background: #fff3f3;
+  color: #b73f4d;
+  font-size: 11px;
+}
+
+.abandonment-modal {
+  width: min(510px, 100%);
+}
+
+.abandonment-modal-content {
+  padding: 22px 25px;
+}
+
+.abandonment-modal-content > p {
+  margin-bottom: 20px;
+  color: #68768a;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.abandonment-modal-content label {
+  display: block;
+  margin-bottom: 8px;
+  color: #35445b;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.abandonment-modal-content textarea {
+  display: block;
+  width: 100%;
+  min-height: 135px;
+  resize: vertical;
+  padding: 12px;
+  border: 1px solid #dce3ed;
+  border-radius: 8px;
+  outline: none;
+  background: #fff;
+  color: #35445b;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.abandonment-modal-content textarea:focus {
+  border-color: #7896e7;
+  box-shadow: 0 0 0 3px rgb(120 150 231 / 13%);
+}
+
+.abandonment-modal-content textarea::placeholder {
+  color: #a1aaba;
+}
+
+.abandonment-character-count {
+  margin-top: 6px;
+  color: #929daf;
+  font-size: 10px;
+  text-align: right;
+}
+
+.abandonment-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  padding: 15px 25px;
+  border-top: 1px solid #e9edf3;
+  background: #fbfcfe;
+}
+
+@media (max-width: 650px) {
+  .incident-modal-overlay {
+    padding: 12px;
+  }
+
+  .incident-modal-header {
+    padding: 18px;
+  }
+
+  .incident-modal-content {
+    padding: 18px;
+  }
+
+  .incident-modal-footer {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 14px 18px;
+  }
+
+  .incident-modal-actions {
+    justify-content: flex-start;
+  }
+
+  .incident-email-row {
+    grid-template-columns: 100px minmax(0, 1fr);
+  }
+
+  .abandonment-modal-content {
+    padding: 18px;
+  }
+
+  .abandonment-modal-footer {
+    padding: 14px 18px;
+  }
+}
