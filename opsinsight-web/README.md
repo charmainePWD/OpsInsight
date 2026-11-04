@@ -1,75 +1,87 @@
-# React + TypeScript + Vite
+# OpsInsight Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The OpsInsight frontend is a React and TypeScript application that provides the user interface for the OpsInsight operations and incident management platform.
 
-Currently, two official plugins are available:
+It communicates with the ASP.NET Core API to retrieve and manage application data.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Technology
 
-## React Compiler
+- React 19
+- TypeScript
+- Vite
+- CSS
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Prerequisites
 
-## Expanding the ESLint configuration
+- Node.js
+- npm
+- A running instance of the OpsInsight API
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Installation
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+From the `opsinsight-web` directory, install the project dependencies:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+## Environment Configuration
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+The frontend uses an environment variable to identify the API address.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Copy `.env.example` to `.env.local`:
 
+```bash
+cp .env.example .env.local
 ```
+
+On Windows PowerShell, you can use:
+
+```powershell
+Copy-Item .env.example .env.local
+```
+
+Open `.env.local` and configure the API URL:
+
+```env
+VITE_API_URL=http://localhost:5092/api
+```
+
+Replace the address with the actual API address displayed when the backend starts.
+
+Do not commit `.env.local` or any private environment configuration.
+
+## Running the Application
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+Vite will display the local development address in the terminal. The default frontend address is:
+
+```text
+http://localhost:5173
+```
+
+Make sure the backend API is running before using the application.
+
+## Available Commands
+
+| Command | Description |
+|---|---|
+| `npm install` | Installs project dependencies |
+| `npm run dev` | Starts the development server |
+| `npm run build` | Runs TypeScript checks and builds the frontend |
+| `npm run lint` | Runs ESLint |
+| `npm run preview` | Previews the production build |
+
+## Application Sections
+
+- **Overview:** Centralised operations dashboard.
+- **Services:** Service health and performance information.
+- **Incidents:** Incident tracking and status management.
+- **Assignments:** Incident ownership and assignment history.
+- **Permissions:** User management and access permissions.
+
