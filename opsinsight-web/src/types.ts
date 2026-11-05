@@ -60,3 +60,19 @@ export type Assignment = {
   unassignedAt: string | null
   isActive: boolean
 }
+
+export type AbandonmentRequest = {
+  id: number
+  assignmentId: number
+  reason: string
+  requestedAt: string
+  status: string
+  reviewedAt: string | null
+  adminNote: string | null
+  requestedBy: string
+  reviewedBy: string | null
+  assignedTo: string
+  incidentId: number
+  incidentTitle: string
+  serviceName: string
+}

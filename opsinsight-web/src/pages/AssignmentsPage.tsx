@@ -4,6 +4,7 @@ import type { User } from '../types'
 import { useAssignments } from '../hooks/useAssignments'
 import AssignmentTable from '../components/AssignmentTable'
 import AssignIncidentForm from '../components/AssignIncidentForm'
+import AbandonmentReviewPanel from '../components/AbandonmentReviewPanel'
 
 type AssignmentsPageProps = {
   currentUser: User
@@ -11,31 +12,42 @@ type AssignmentsPageProps = {
 
 function AssignmentsPage({ currentUser }: AssignmentsPageProps) {
   const isAdmin = currentUser.permission === 'Administrator'
+
   const {
     assignments,
     users,
     incidents,
+    abandonmentRequests,
     loading,
     error,
+    abandonmentLoading,
+    abandonmentError,
     assignIncident,
     unassign,
-  } = useAssignments(true)
+    reviewAbandonmentRequest,
+    reassignAbandonmentRequest,
+  } = useAssignments(true, isAdmin)
 
   const [actionError, setActionError] = useState('')
   const [showAssignForm, setShowAssignForm] = useState(false)
 
   async function safeUnassign(id: number) {
     setActionError('')
+
     try {
       await unassign(id)
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Could not unassign.'
+      const message =
+        err instanceof Error ? err.message : 'Could not unassign.'
+
       setActionError(message)
       throw err
     }
   }
 
-  const activeCount = assignments.filter((item) => item.isActive).length
+  const activeCount = assignments.filter(
+    (item) => item.isActive,
+  ).length
 
   return (
     <>
@@ -45,13 +57,18 @@ function AssignmentsPage({ currentUser }: AssignmentsPageProps) {
           <h1>Assignments</h1>
           <p>Track incident ownership and assignment history.</p>
         </div>
+
         <div className="page-count">
           <strong>{loading ? '—' : activeCount}</strong>
           <span>active assignments</span>
         </div>
       </section>
 
-      {actionError && <p className="notice-error" role="alert">{actionError}</p>}
+      {actionError && (
+        <p className="notice-error" role="alert">
+          {actionError}
+        </p>
+      )}
 
       {isAdmin && (
         <div className="page-action-row">
@@ -59,7 +76,9 @@ function AssignmentsPage({ currentUser }: AssignmentsPageProps) {
             type="button"
             className="page-action-button"
             aria-expanded={showAssignForm}
-            onClick={() => setShowAssignForm((visible) => !visible)}
+            onClick={() =>
+              setShowAssignForm((visible) => !visible)
+            }
           >
             {showAssignForm ? 'Close form' : 'Assign incident'}
           </button>
@@ -74,6 +93,24 @@ function AssignmentsPage({ currentUser }: AssignmentsPageProps) {
         />
       )}
 
+      {isAdmin && (
+        <>
+          {abandonmentError && (
+            <p className="notice-error" role="alert">
+              {abandonmentError}
+            </p>
+          )}
+
+          <AbandonmentReviewPanel
+            requests={abandonmentRequests}
+            users={users}
+            loading={abandonmentLoading}
+            onReview={reviewAbandonmentRequest}
+            onReassign={reassignAbandonmentRequest}
+          />
+        </>
+      )}
+
       <AssignmentTable
         assignments={assignments}
         loading={loading}
@@ -82,7 +119,9 @@ function AssignmentsPage({ currentUser }: AssignmentsPageProps) {
         onUnassign={safeUnassign}
       />
 
-      <footer>OpsInsight <span>·</span> Incident assignments</footer>
+      <footer>
+        OpsInsight <span>·</span> Incident assignments
+      </footer>
     </>
   )
 }

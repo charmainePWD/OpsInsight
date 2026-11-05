@@ -1,0 +1,340 @@
+.abandonment-panel {
+  margin-top: 18px;
+}
+
+.abandonment-heading {
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 17px;
+}
+
+.abandonment-eyebrow {
+  margin-bottom: 5px;
+  color: #5478d8;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 1.2px;
+}
+
+.abandonment-count {
+  display: flex;
+  min-width: 105px;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 9px 13px;
+  border: 1px solid #e8d7b5;
+  border-radius: 8px;
+  background: #fff8e9;
+}
+
+.abandonment-count strong {
+  color: #a66a17;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.abandonment-count span {
+  color: #98764a;
+  font-size: 10px;
+}
+
+.abandonment-request-list {
+  display: grid;
+  gap: 12px;
+  padding: 0 18px 18px;
+}
+
+.abandonment-request {
+  min-width: 0;
+  padding: 17px;
+  border: 1px solid #dfe5ef;
+  border-left: 4px solid #d99a38;
+  border-radius: 9px;
+  background: #fff;
+}
+
+.abandonment-request-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.abandonment-request-id {
+  color: #6680b8;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.8px;
+}
+
+.abandonment-request-top h3 {
+  margin: 4px 0 2px;
+  color: #26364e;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.abandonment-service {
+  color: #8793a5;
+  font-size: 10px;
+}
+
+.abandonment-pending-badge {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border-radius: 5px;
+  background: #fff3dc;
+  color: #a76a16;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.abandonment-details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 15px;
+  padding: 12px 0;
+  border-top: 1px solid #edf0f5;
+  border-bottom: 1px solid #edf0f5;
+}
+
+.abandonment-details > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.abandonment-details span,
+.abandonment-reason > span {
+  color: #8793a5;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.65px;
+}
+
+.abandonment-details strong {
+  overflow-wrap: anywhere;
+  color: #34435a;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.abandonment-reason {
+  margin-top: 13px;
+  padding: 12px;
+  border: 1px solid #f0e4d0;
+  border-radius: 7px;
+  background: #fffcf6;
+}
+
+.abandonment-reason p {
+  margin-top: 6px;
+  color: #48566b;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.abandonment-review-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.abandonment-note-field,
+.abandonment-reassign label {
+  display: grid;
+  gap: 6px;
+  color: #526078;
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.abandonment-note-field textarea,
+.abandonment-reassign select {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid #dce3ed;
+  border-radius: 6px;
+  background: #fff;
+  color: #34435a;
+  font: inherit;
+  font-size: 11px;
+}
+
+.abandonment-note-field textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.abandonment-note-field textarea:focus,
+.abandonment-reassign select:focus {
+  border-color: #7198f4;
+  outline: 2px solid rgb(84 135 245 / 14%);
+}
+
+.abandonment-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.abandonment-actions button,
+.abandonment-reassign-button {
+  min-height: 33px;
+  padding: 7px 11px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.abandonment-approve {
+  background: #25845f;
+  color: #fff;
+}
+
+.abandonment-approve:hover:not(:disabled) {
+  background: #1c704f;
+}
+
+.abandonment-reject {
+  border-color: #efd5d7 !important;
+  background: #fff4f4;
+  color: #b4444e;
+}
+
+.abandonment-reject:hover:not(:disabled) {
+  background: #fde8e9;
+}
+
+.abandonment-reassign {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(180px, 1fr) auto;
+  align-items: end;
+  gap: 9px;
+  padding-top: 12px;
+  border-top: 1px solid #edf0f5;
+}
+
+.abandonment-reassign-button {
+  border-color: #d9e2f5;
+  background: #edf2ff;
+  color: #4168c3;
+}
+
+.abandonment-reassign-button:hover:not(:disabled) {
+  background: #dfe8ff;
+}
+
+.abandonment-actions button:disabled,
+.abandonment-reassign-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.abandonment-empty {
+  display: flex;
+  min-height: 125px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 22px;
+  color: #8793a5;
+  text-align: center;
+  font-size: 11px;
+}
+
+.abandonment-empty strong {
+  color: #45546b;
+  font-size: 12px;
+}
+
+.abandonment-empty-icon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  margin-bottom: 3px;
+  border-radius: 50%;
+  background: #e8f7ef;
+  color: #25845f;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.abandonment-message {
+  margin: 0 18px 12px;
+  padding: 9px 11px;
+  border-radius: 6px;
+  font-size: 11px;
+}
+
+.abandonment-error {
+  border: 1px solid #f2d3d6;
+  background: #fff3f3;
+  color: #b73f4d;
+}
+
+.abandonment-success {
+  border: 1px solid #ccebdd;
+  background: #effaf4;
+  color: #238261;
+}
+
+@media (max-width: 800px) {
+  .abandonment-review-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .abandonment-actions {
+    justify-content: flex-start;
+  }
+
+  .abandonment-reassign {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .abandonment-heading {
+    align-items: flex-start;
+  }
+
+  .abandonment-count {
+    min-width: 90px;
+  }
+
+  .abandonment-details {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .abandonment-request {
+    padding: 13px;
+  }
+
+  .abandonment-request-list {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .abandonment-reassign {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .abandonment-reassign-button {
+    width: 100%;
+  }
+}
