@@ -25,8 +25,22 @@ const statuses: IncidentStatus[] = [
 
 function formatDate(value: string | null | undefined) {
   if (!value) return '—'
-
   return new Date(value).toLocaleString()
+}
+
+function AzureDetail({
+  label,
+  value,
+}: {
+  label: string
+  value: string | null | undefined
+}) {
+  return (
+    <div className="incident-email-row">
+      <span>{label}</span>
+      <strong>{value || 'Not configured'}</strong>
+    </div>
+  )
 }
 
 function IncidentDetailsModal({
@@ -186,9 +200,7 @@ function IncidentDetailsModal({
                 {incident.title}
               </h2>
 
-              <p>
-                {incident.serviceName}
-              </p>
+              <p>{incident.serviceName}</p>
             </div>
 
             <button
@@ -225,31 +237,15 @@ function IncidentDetailsModal({
             <section className="incident-email-section">
               <h3>Incident report</h3>
 
-              <div className="incident-email-row">
-                <span>Reported</span>
-                <strong>{formatDate(incident.createdAt)}</strong>
-              </div>
-
-              <div className="incident-email-row">
-                <span>Service</span>
-                <strong>{incident.serviceName}</strong>
-              </div>
-
-              <div className="incident-email-row">
-                <span>Severity</span>
-                <strong>{incident.severity}</strong>
-              </div>
-
-              <div className="incident-email-row">
-                <span>Current status</span>
-                <strong>{incident.status}</strong>
-              </div>
+              <AzureDetail label="Incident ID" value={`INC-${String(incident.id).padStart(4, '0')}`} />
+              <AzureDetail label="Reported" value={formatDate(incident.createdAt)} />
+              <AzureDetail label="Service" value={incident.serviceName} />
+              <AzureDetail label="Service category" value={incident.serviceCategory} />
+              <AzureDetail label="Severity" value={incident.severity} />
+              <AzureDetail label="Current status" value={incident.status} />
 
               {incident.resolvedAt && (
-                <div className="incident-email-row">
-                  <span>Resolved</span>
-                  <strong>{formatDate(incident.resolvedAt)}</strong>
-                </div>
+                <AzureDetail label="Resolved" value={formatDate(incident.resolvedAt)} />
               )}
             </section>
 
@@ -262,23 +258,27 @@ function IncidentDetailsModal({
               </p>
             </section>
 
+            <section className="incident-email-section">
+              <h3>Azure resource details</h3>
+
+              <AzureDetail label="Service description" value={incident.serviceDescription} />
+              <AzureDetail label="Tenant" value={incident.tenantName} />
+              <AzureDetail label="Tenant ID" value={incident.tenantId} />
+              <AzureDetail label="Subscription" value={incident.subscriptionName} />
+              <AzureDetail label="Subscription ID" value={incident.subscriptionId} />
+              <AzureDetail label="Resource group" value={incident.resourceGroup} />
+              <AzureDetail label="Resource type" value={incident.resourceType} />
+              <AzureDetail label="Azure region" value={incident.region} />
+              <AzureDetail label="Environment" value={incident.environment} />
+              <AzureDetail label="Azure resource ID" value={incident.azureResourceId} />
+            </section>
+
             <section className="incident-assignment-section">
               <h3>Assignment details</h3>
 
-              <div className="incident-email-row">
-                <span>Assigned to</span>
-                <strong>{incident.assignedTo ?? 'Unassigned'}</strong>
-              </div>
-
-              <div className="incident-email-row">
-                <span>Assigned by</span>
-                <strong>{incident.assignedBy ?? '—'}</strong>
-              </div>
-
-              <div className="incident-email-row">
-                <span>Assigned at</span>
-                <strong>{formatDate(incident.assignedAt)}</strong>
-              </div>
+              <AzureDetail label="Assigned to" value={incident.assignedTo} />
+              <AzureDetail label="Assigned by" value={incident.assignedBy} />
+              <AzureDetail label="Assigned at" value={formatDate(incident.assignedAt)} />
             </section>
           </div>
 

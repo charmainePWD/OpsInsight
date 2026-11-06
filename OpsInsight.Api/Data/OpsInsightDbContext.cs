@@ -1,4 +1,3 @@
-
 using Microsoft.EntityFrameworkCore;
 using OpsInsight.Api.Models;
 
@@ -26,6 +25,59 @@ public class OpsInsightDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // SERVICES
+        modelBuilder.Entity<Service>(entity =>
+        {
+            entity.ToTable("Services", "dbo");
+
+            entity.HasKey(service => service.Id);
+
+            entity.Property(service => service.Name)
+                .HasMaxLength(200)
+                .IsRequired();
+
+            entity.Property(service => service.Category)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(service => service.Status)
+                .HasMaxLength(30)
+                .IsRequired();
+
+            entity.Property(service => service.UptimePercentage)
+                .HasColumnType("decimal(5,2)");
+
+            entity.Property(service => service.Description)
+                .HasMaxLength(500);
+
+            entity.Property(service => service.TenantName)
+                .HasMaxLength(200);
+
+            entity.Property(service => service.TenantId)
+                .HasMaxLength(100);
+
+            entity.Property(service => service.SubscriptionName)
+                .HasMaxLength(200);
+
+            entity.Property(service => service.SubscriptionId)
+                .HasMaxLength(100);
+
+            entity.Property(service => service.ResourceGroup)
+                .HasMaxLength(200);
+
+            entity.Property(service => service.AzureResourceId)
+                .HasMaxLength(1000);
+
+            entity.Property(service => service.ResourceType)
+                .HasMaxLength(200);
+
+            entity.Property(service => service.Region)
+                .HasMaxLength(100);
+
+            entity.Property(service => service.Environment)
+                .HasMaxLength(50);
+        });
 
         // USERS
         modelBuilder.Entity<User>(entity =>

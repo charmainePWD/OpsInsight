@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import type { Service } from '../types'
 
@@ -31,9 +30,8 @@ function ServiceHealthTable({
       <div className="panel-heading">
         <div>
           <h2>Service health</h2>
-          <p>Current status of monitored services</p>
+          <p>Current status and Azure resource information</p>
         </div>
-        {/* <span className="subtle-label">{services.length} services</span> */}
       </div>
 
       <div className="table-wrap">
@@ -44,13 +42,15 @@ function ServiceHealthTable({
               <th>STATUS</th>
               <th>UPTIME</th>
               <th>RESPONSE TIME</th>
+              <th>AZURE RESOURCE</th>
+              <th>REGION / ENVIRONMENT</th>
             </tr>
           </thead>
 
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={4} className="empty-state">
+                <td colSpan={6} className="empty-state">
                   Loading services...
                 </td>
               </tr>
@@ -58,7 +58,7 @@ function ServiceHealthTable({
 
             {!loading && error && (
               <tr>
-                <td colSpan={4} className="empty-state">
+                <td colSpan={6} className="empty-state">
                   Could not load services: {error}
                 </td>
               </tr>
@@ -71,6 +71,7 @@ function ServiceHealthTable({
                     <div className="service-symbol">
                       {service.name.charAt(0)}
                     </div>
+
                     <div>
                       <strong>{service.name}</strong>
                       <span>{service.category}</span>
@@ -85,19 +86,43 @@ function ServiceHealthTable({
                   </span>
                 </td>
 
-                <td><strong>{service.uptimePercentage}%</strong></td>
+                <td>
+                  <strong>{service.uptimePercentage}%</strong>
+                </td>
 
                 <td>
                   <span className={service.responseTimeMs > 500 ? 'text-orange' : ''}>
                     {service.responseTimeMs} ms
                   </span>
                 </td>
+
+                <td>
+                  <div className="service-name">
+                    <div>
+                      <strong>
+                        {service.resourceType ?? 'Not configured'}
+                      </strong>
+                      <span>
+                        {service.resourceGroup ?? 'No resource group'}
+                      </span>
+                    </div>
+                  </div>
+                </td>
+
+                <td>
+                  <div className="service-name">
+                    <div>
+                      <strong>{service.region ?? 'Not configured'}</strong>
+                      <span>{service.environment ?? 'No environment'}</span>
+                    </div>
+                  </div>
+                </td>
               </tr>
             ))}
 
             {!loading && !error && services.length === 0 && (
               <tr>
-                <td colSpan={4} className="empty-state">
+                <td colSpan={6} className="empty-state">
                   No services found.
                 </td>
               </tr>
@@ -131,7 +156,9 @@ function ServiceHealthTable({
             >
               Previous
             </button>
+
             <span>{currentPage} / {totalPages}</span>
+
             <button
               type="button"
               disabled={currentPage >= totalPages}

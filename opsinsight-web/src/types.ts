@@ -7,6 +7,18 @@ export type Service = {
   status: ServiceStatus
   uptimePercentage: number
   responseTimeMs: number
+  createdAt?: string
+
+  description: string | null
+  tenantName: string | null
+  tenantId: string | null
+  subscriptionName: string | null
+  subscriptionId: string | null
+  resourceGroup: string | null
+  azureResourceId: string | null
+  resourceType: string | null
+  region: string | null
+  environment: string | null
 }
 
 export type IncidentStatus =
@@ -19,6 +31,9 @@ export type Incident = {
   id: number
   serviceId: number
   serviceName: string
+  serviceCategory: string | null
+  serviceDescription: string | null
+
   title: string
   description: string | null
   severity: 'Critical' | 'High' | 'Medium' | 'Low'
@@ -26,7 +41,18 @@ export type Incident = {
   createdAt: string
   resolvedAt: string | null
 
-  // Current assignment information
+  // Azure information inherited from the related Service.
+  tenantName: string | null
+  tenantId: string | null
+  subscriptionName: string | null
+  subscriptionId: string | null
+  resourceGroup: string | null
+  azureResourceId: string | null
+  resourceType: string | null
+  region: string | null
+  environment: string | null
+
+  // Current assignment information.
   assignmentId: number | null
   assignedUserId: number | null
   assignedTo: string | null
@@ -59,6 +85,17 @@ export type Assignment = {
   assignedAt: string
   unassignedAt: string | null
   isActive: boolean
+
+  status?: string
+  closureReason?: string | null
+  closureNotes?: string | null
+  previousAssignmentId?: number | null
+
+  pendingAbandonmentRequest?: {
+    id: number
+    reason: string
+    requestedAt: string
+  } | null
 }
 
 export type AbandonmentRequest = {

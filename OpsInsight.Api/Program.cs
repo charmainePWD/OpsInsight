@@ -1,18 +1,14 @@
-
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using OpsInsight.Api.Data;
 using OpsInsight.Api.Models;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Patterns;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
 using OpsInsight.Api.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Register services before building the application.
 builder.Services.AddOpenApi();
 
 builder.Services.AddCors(options =>
@@ -96,7 +92,6 @@ builder.Services.AddAuthorization(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -125,7 +120,7 @@ app.MapGet("/api/services", async (OpsInsightDbContext db) =>
 
 // =========================================================
 // GET INCIDENTS
-// Includes current assignment information.
+// Includes service Azure details and current assignment.
 // =========================================================
 
 app.MapGet("/api/incidents", async (
@@ -143,13 +138,28 @@ app.MapGet("/api/incidents", async (
         {
             incident.Id,
             incident.ServiceId,
+
             ServiceName = incident.Service!.Name,
+            ServiceCategory = incident.Service.Category,
+            ServiceDescription = incident.Service.Description,
+
             incident.Title,
             incident.Description,
             incident.Severity,
             incident.Status,
             incident.CreatedAt,
             incident.ResolvedAt,
+
+            // Azure details are read from the related service.
+            TenantName = incident.Service.TenantName,
+            TenantId = incident.Service.TenantId,
+            SubscriptionName = incident.Service.SubscriptionName,
+            SubscriptionId = incident.Service.SubscriptionId,
+            ResourceGroup = incident.Service.ResourceGroup,
+            AzureResourceId = incident.Service.AzureResourceId,
+            ResourceType = incident.Service.ResourceType,
+            Region = incident.Service.Region,
+            Environment = incident.Service.Environment,
 
             Assignment = db.Assignments
                 .Where(assignment =>
@@ -180,12 +190,25 @@ app.MapGet("/api/incidents", async (
         incident.Id,
         incident.ServiceId,
         incident.ServiceName,
+        incident.ServiceCategory,
+        incident.ServiceDescription,
+
         incident.Title,
         incident.Description,
         incident.Severity,
         incident.Status,
         incident.CreatedAt,
         incident.ResolvedAt,
+
+        incident.TenantName,
+        incident.TenantId,
+        incident.SubscriptionName,
+        incident.SubscriptionId,
+        incident.ResourceGroup,
+        incident.AzureResourceId,
+        incident.ResourceType,
+        incident.Region,
+        incident.Environment,
 
         AssignmentId = incident.Assignment?.Id,
         AssignedUserId = incident.Assignment?.UserId,
@@ -203,12 +226,6 @@ app.MapGet("/api/incidents", async (
 })
 .RequireAuthorization()
 .WithName("GetIncidents");
-
-// =========================================================
-// SHARED STATUS AUTHORIZATION
-// Administrators: any incident.
-// Contributors: only their own active assignments.
-// =========================================================
 
 // =========================================================
 // RESOLVE INCIDENT
@@ -253,19 +270,19 @@ app.MapPatch("/api/incidents/{id:int}/resolve", async (
         }
     }
 
+    if (activeAssignment?.Status == "PendingAbandonment")
+    {
+        return Results.Conflict(new
+        {
+            message = "Review the pending abandonment request before resolving this incident."
+        });
+    }
+
     incident.Status = "Resolved";
     incident.ResolvedAt = DateTime.UtcNow;
 
     if (activeAssignment is not null)
     {
-        if (activeAssignment.Status == "PendingAbandonment")
-        {
-            return Results.Conflict(new
-            {
-                message = "Review the pending abandonment request before resolving this incident."
-            });
-        }
-
         activeAssignment.Status = "Closed";
         activeAssignment.ClosureReason = "Resolved";
         activeAssignment.UnassignedAt = DateTime.UtcNow;
@@ -335,7 +352,6 @@ app.MapPatch("/api/incidents/{id:int}/status", async (
             assignment.IncidentId == incident.Id &&
             assignment.UnassignedAt == null);
 
-    // Contributors can only update their own active assignments.
     if (!isAdmin)
     {
         if (activeAssignment is null ||
@@ -346,8 +362,6 @@ app.MapPatch("/api/incidents/{id:int}/status", async (
         }
     }
 
-    // Do not resolve an incident while its abandonment
-    // request is still waiting for administrator review.
     if (request.Status == "Resolved" &&
         activeAssignment?.Status == "PendingAbandonment")
     {
@@ -363,7 +377,6 @@ app.MapPatch("/api/incidents/{id:int}/status", async (
         ? incident.ResolvedAt ?? DateTime.UtcNow
         : null;
 
-    // Automatically close the active assignment when resolved.
     if (request.Status == "Resolved" &&
         activeAssignment is not null)
     {
@@ -407,16 +420,3 @@ app.MapUserEndpoints();
 app.MapAssignmentEndpoints();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
-
-record ServiceHealth(
-    int Id,
-    string Name,
-    string Category,
-    string Status,
-    double UptimePercentage,
-    int ResponseTimeMs);
