@@ -292,8 +292,7 @@ public static class AssignmentEndpoints
                 .ToListAsync();
 
             return Results.Ok(requests);
-        })
-        .RequireAuthorization("AdministratorOnly");
+        });
 
 
         // =====================================================

@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import type { AbandonmentRequest,User, } from '../types'
+import type { AbandonmentRequest, User } from '../types'
 import '../styles/AbandonmentReview.css'
 
-type AbandonmentReviewPanelProps = {
+type Props = {
   requests: AbandonmentRequest[]
   users: User[]
   loading: boolean
+  error: string | null
+  isAdmin: boolean
   onReview: (
     requestId: number,
     action: 'approve' | 'reject',
@@ -16,122 +18,67 @@ type AbandonmentReviewPanelProps = {
     newUserId: number,
     adminNote: string,
   ) => Promise<void>
+  onOpenIncident: (incidentId: number) => void
 }
 
 function AbandonmentReviewPanel({
   requests,
   users,
   loading,
+  error: loadError,
+  isAdmin,
   onReview,
   onReassign,
-}: AbandonmentReviewPanelProps) {
+  onOpenIncident,
+}: Props) {
   const [notes, setNotes] = useState<Record<number, string>>({})
-  const [selectedUsers, setSelectedUsers] = useState<
-    Record<number, string>
-  >({})
-  const [busyRequestId, setBusyRequestId] = useState<number | null>(null)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
-
-  const pendingRequests = requests.filter(
-    (request) => request.status === 'Pending',
-  )
-
+  const [selectedUsers, setSelectedUsers] = useState<Record<number, string>>({})
+  const [busyId, setBusyId] = useState<number | null>(null)
+  const [actionError, setActionError] = useState('')
+  const [message, setMessage] = useState('')
+  const pendingCount = requests.filter(
+    request => request.status === 'Pending',
+  ).length
   const contributors = users.filter(
-    (user) => user.permission === 'Contributor',
+    user => user.permission === 'Contributor',
   )
 
-  function updateNote(requestId: number, value: string) {
-    setNotes((current) => ({
-      ...current,
-      [requestId]: value,
-    }))
-  }
-
-  function updateSelectedUser(requestId: number, value: string) {
-    setSelectedUsers((current) => ({
-      ...current,
-      [requestId]: value,
-    }))
-  }
-
-  async function handleReview(
-    requestId: number,
-    action: 'approve' | 'reject',
-  ) {
-    setError('')
-    setSuccess('')
-    setBusyRequestId(requestId)
+  async function review(id: number, action: 'approve' | 'reject') {
+    setBusyId(id)
+    setActionError('')
+    setMessage('')
 
     try {
-      await onReview(
-        requestId,
-        action,
-        notes[requestId] ?? '',
+      await onReview(id, action, notes[id] ?? '')
+      setMessage(
+        action === 'approve' ? 'Request approved.' : 'Request rejected.',
       )
-
-      setSuccess(
-        action === 'approve'
-          ? 'Abandonment request approved.'
-          : 'Abandonment request rejected. The assignment is active again.',
-      )
-
-      setNotes((current) => ({
-        ...current,
-        [requestId]: '',
-      }))
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Could not review the request.',
+      setActionError(
+        err instanceof Error ? err.message : 'Could not review request.',
       )
     } finally {
-      setBusyRequestId(null)
+      setBusyId(null)
     }
   }
 
-  async function handleReassign(requestId: number) {
-    setError('')
-    setSuccess('')
+  async function reassign(id: number) {
+    const userId = Number(selectedUsers[id])
+    if (!userId) return
 
-    const selectedUserId = Number(selectedUsers[requestId])
-
-    if (!selectedUserId) {
-      setError('Select a Contributor before reassigning.')
-      return
-    }
-
-    setBusyRequestId(requestId)
+    setBusyId(id)
+    setActionError('')
+    setMessage('')
 
     try {
-      await onReassign(
-        requestId,
-        selectedUserId,
-        notes[requestId] ?? '',
-      )
-
-      setSuccess(
-        'Incident reassigned successfully. The previous assignment has been retained in history.',
-      )
-
-      setSelectedUsers((current) => ({
-        ...current,
-        [requestId]: '',
-      }))
-
-      setNotes((current) => ({
-        ...current,
-        [requestId]: '',
-      }))
+      await onReassign(id, userId, notes[id] ?? '')
+      setMessage('Incident reassigned successfully.')
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Could not reassign the incident.',
+      setActionError(
+        err instanceof Error ? err.message : 'Could not reassign incident.',
       )
     } finally {
-      setBusyRequestId(null)
+      setBusyId(null)
     }
   }
 
@@ -139,31 +86,32 @@ function AbandonmentReviewPanel({
     <section className="panel abandonment-panel">
       <div className="panel-heading abandonment-heading">
         <div>
-          <div className="abandonment-eyebrow">
-            ADMINISTRATOR REVIEW
-          </div>
+          <div className="abandonment-eyebrow">ASSIGNMENT REVIEW</div>
           <h2>Abandonment requests</h2>
           <p>
-            Review requests submitted by Contributors and decide
-            how ownership should proceed.
+            Review submitted requests and their outcomes. Administrators can
+            approve, reject or reassign pending requests.
           </p>
         </div>
-
         <div className="abandonment-count">
-          <strong>{loading ? '—' : pendingRequests.length}</strong>
+          <strong>{loading ? '—' : pendingCount}</strong>
           <span>awaiting review</span>
         </div>
       </div>
 
-      {error && (
+      {loadError && (
         <p className="abandonment-message abandonment-error" role="alert">
-          {error}
+          {loadError}
         </p>
       )}
-
-      {success && (
+      {actionError && (
+        <p className="abandonment-message abandonment-error" role="alert">
+          {actionError}
+        </p>
+      )}
+      {message && (
         <p className="abandonment-message abandonment-success" role="status">
-          {success}
+          {message}
         </p>
       )}
 
@@ -171,18 +119,16 @@ function AbandonmentReviewPanel({
         <div className="abandonment-empty">
           Loading abandonment requests...
         </div>
-      ) : pendingRequests.length === 0 ? (
+      ) : requests.length === 0 ? (
         <div className="abandonment-empty">
-          <div className="abandonment-empty-icon">✓</div>
-          <strong>No pending requests</strong>
-          <span>
-            All submitted abandonment requests have been reviewed.
-          </span>
+          <strong>No abandonment requests</strong>
+          <span>Submitted requests will appear here.</span>
         </div>
       ) : (
         <div className="abandonment-request-list">
-          {pendingRequests.map((request) => {
-            const isBusy = busyRequestId === request.id
+          {requests.map(request => {
+            const pending = request.status === 'Pending'
+            const busy = busyId === request.id
 
             return (
               <article
@@ -194,16 +140,23 @@ function AbandonmentReviewPanel({
                     <span className="abandonment-request-id">
                       INC-{String(request.incidentId).padStart(4, '0')}
                     </span>
-
-                    <h3>{request.incidentTitle}</h3>
-
+                    <h3>
+                      <button
+                        type="button"
+                        className="abandonment-incident-link"
+                        onClick={() => onOpenIncident(request.incidentId)}
+                      >
+                        {request.incidentTitle}
+                      </button>
+                    </h3>
                     <p className="abandonment-service">
                       {request.serviceName}
                     </p>
                   </div>
-
-                  <span className="abandonment-pending-badge">
-                    Pending review
+                  <span
+                    className={`abandonment-status-badge ${pending ? 'pending' : ''}`}
+                  >
+                    {request.status}
                   </span>
                 </div>
 
@@ -212,16 +165,22 @@ function AbandonmentReviewPanel({
                     <span>REQUESTED BY</span>
                     <strong>{request.requestedBy}</strong>
                   </div>
-
                   <div>
                     <span>CURRENTLY ASSIGNED TO</span>
                     <strong>{request.assignedTo}</strong>
                   </div>
-
                   <div>
                     <span>SUBMITTED</span>
                     <strong>
                       {new Date(request.requestedAt).toLocaleString()}
+                    </strong>
+                  </div>
+                  <div>
+                    <span>REVIEWED</span>
+                    <strong>
+                      {request.reviewedAt
+                        ? new Date(request.reviewedAt).toLocaleString()
+                        : 'Awaiting review'}
                     </strong>
                   </div>
                 </div>
@@ -230,97 +189,92 @@ function AbandonmentReviewPanel({
                   <span>CONTRIBUTOR'S REASON</span>
                   <p>{request.reason}</p>
                 </div>
-
-                <div className="abandonment-review-controls">
-                  <label className="abandonment-note-field">
-                    Administrator note
-                    <textarea
-                      value={notes[request.id] ?? ''}
-                      onChange={(event) =>
-                        updateNote(request.id, event.target.value)
-                      }
-                      placeholder="Optional note explaining your decision..."
-                      rows={2}
-                      maxLength={1000}
-                      disabled={isBusy}
-                    />
-                  </label>
-
-                  <div className="abandonment-actions">
-                    <button
-                      type="button"
-                      className="abandonment-approve"
-                      disabled={isBusy}
-                      onClick={() =>
-                        void handleReview(request.id, 'approve')
-                      }
-                    >
-                      {isBusy ? 'Processing...' : 'Approve'}
-                    </button>
-
-                    <button
-                      type="button"
-                      className="abandonment-reject"
-                      disabled={isBusy}
-                      onClick={() =>
-                        void handleReview(request.id, 'reject')
-                      }
-                    >
-                      Reject
-                    </button>
+                {request.adminNote && (
+                  <div className="abandonment-reason">
+                    <span>ADMINISTRATOR NOTE</span>
+                    <p>{request.adminNote}</p>
                   </div>
+                )}
 
-                  <div className="abandonment-reassign">
-                    <label>
-                      Reassign incident to
-                      <select
-                        value={selectedUsers[request.id] ?? ''}
-                        onChange={(event) =>
-                          updateSelectedUser(
-                            request.id,
-                            event.target.value,
-                          )
+                {isAdmin && pending && (
+                  <div className="abandonment-review-controls">
+                    <label className="abandonment-note-field">
+                      Administrator note
+                      <textarea
+                        rows={2}
+                        maxLength={1000}
+                        value={notes[request.id] ?? ''}
+                        onChange={event =>
+                          setNotes(current => ({
+                            ...current,
+                            [request.id]: event.target.value,
+                          }))
                         }
-                        disabled={isBusy}
-                      >
-                        <option value="">Select a Contributor</option>
-
-                        {contributors
-                          .filter(
-                            (user) => {
-                              const currentOwner = request.assignedTo
-                                .trim()
-                                .toLowerCase()
-
-                              return (
-                                `${user.name} ${user.surname}`
-                                  .trim()
-                                  .toLowerCase() !== currentOwner
-                              )
-                            },
-                          )
-                          .map((user) => (
-                            <option key={user.id} value={user.id}>
-                              {user.name} {user.surname}
-                            </option>
-                          ))}
-                      </select>
+                        disabled={busy}
+                        placeholder="Optional note..."
+                      />
                     </label>
-
-                    <button
-                      type="button"
-                      className="abandonment-reassign-button"
-                      disabled={
-                        isBusy || !selectedUsers[request.id]
-                      }
-                      onClick={() =>
-                        void handleReassign(request.id)
-                      }
-                    >
-                      Reassign
-                    </button>
+                    <div className="abandonment-actions">
+                      <button
+                        type="button"
+                        className="abandonment-approve"
+                        disabled={busy}
+                        onClick={() => void review(request.id, 'approve')}
+                      >
+                        Approve
+                      </button>
+                      <button
+                        type="button"
+                        className="abandonment-reject"
+                        disabled={busy}
+                        onClick={() => void review(request.id, 'reject')}
+                      >
+                        Reject
+                      </button>
+                    </div>
+                    <div className="abandonment-reassign">
+                      <label>
+                        Reassign incident to
+                        <select
+                          value={selectedUsers[request.id] ?? ''}
+                          onChange={event =>
+                            setSelectedUsers(current => ({
+                              ...current,
+                              [request.id]: event.target.value,
+                            }))
+                          }
+                          disabled={busy}
+                        >
+                          <option value="">Select a Contributor</option>
+                          {contributors
+                            .filter(
+                              user =>
+                                `${user.name} ${user.surname}`.toLowerCase() !==
+                                request.assignedTo.toLowerCase(),
+                            )
+                            .map(user => (
+                              <option key={user.id} value={user.id}>
+                                {user.name} {user.surname}
+                              </option>
+                            ))}
+                        </select>
+                      </label>
+                      <button
+                        type="button"
+                        className="abandonment-reassign-button"
+                        disabled={busy || !selectedUsers[request.id]}
+                        onClick={() => void reassign(request.id)}
+                      >
+                        Reassign
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
+                {!isAdmin && (
+                  <p className="abandonment-readonly-note">
+                    View only — administrator review actions are restricted.
+                  </p>
+                )}
               </article>
             )
           })}

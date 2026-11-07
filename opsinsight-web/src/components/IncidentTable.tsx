@@ -1,20 +1,19 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Incident, IncidentStatus, User } from '../types'
 import IncidentDetailsModal from './IncidentDetailsModal'
 
-type IncidentTableProps = {
+type Props = {
   incidents: Incident[]
   loading: boolean
   error: string | null
   currentUser: User
-  updateIncidentStatus: (
-    id: number,
-    status: IncidentStatus,
-  ) => Promise<void>
+  updateIncidentStatus: (id: number, status: IncidentStatus) => Promise<void>
   submitAbandonmentRequest: (
     assignmentId: number,
     reason: string,
   ) => Promise<void>
+  selectedIncidentId: number | null
+  onIncidentOpened: () => void
 }
 
 const statuses: IncidentStatus[] = [
@@ -31,58 +30,45 @@ function IncidentTable({
   currentUser,
   updateIncidentStatus,
   submitAbandonmentRequest,
-}: IncidentTableProps) {
+  selectedIncidentId,
+  onIncidentOpened,
+}: Props) {
   const [filter, setFilter] = useState('All')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(5)
-  const [selectedIncident, setSelectedIncident] =
-    useState<Incident | null>(null)
+  const [selectedIncident, setSelectedIncident] = useState<Incident | null>(
+    null,
+  )
 
-  const filteredIncidents = incidents.filter((incident) => {
-    const matchesStatus =
-      filter === 'All' || incident.status === filter
+  useEffect(() => {
+    if (selectedIncidentId === null || loading) return
 
+    const match = incidents.find(
+      incident => incident.id === selectedIncidentId,
+    )
+
+    if (match) {
+      setSelectedIncident(match)
+      onIncidentOpened()
+    }
+  }, [selectedIncidentId, incidents, loading, onIncidentOpened])
+
+  const filtered = incidents.filter(incident => {
     const query = search.toLowerCase().trim()
+    const incidentNumber = `INC-${String(incident.id).padStart(4, '0')}`
 
-    const incidentNumber =
-      `INC-${String(incident.id).padStart(4, '0')}`
-
-    const matchesSearch =
-      incident.title.toLowerCase().includes(query) ||
-      incident.serviceName.toLowerCase().includes(query) ||
-      incidentNumber.toLowerCase().includes(query)
-
-    return matchesStatus && matchesSearch
+    return (
+      (filter === 'All' || incident.status === filter) &&
+      [incident.title, incident.serviceName, incidentNumber].some(value =>
+        value.toLowerCase().includes(query),
+      )
+    )
   })
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredIncidents.length / pageSize),
-  )
-
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
   const currentPage = Math.min(page, totalPages)
-  const startIndex = (currentPage - 1) * pageSize
-
-  const visibleIncidents = filteredIncidents.slice(
-    startIndex,
-    startIndex + pageSize,
-  )
-
-  function changeFilter(value: string) {
-    setFilter(value)
-    setPage(1)
-  }
-
-  function changeSearch(value: string) {
-    setSearch(value)
-    setPage(1)
-  }
-
-  function changePageSize(size: number) {
-    setPageSize(size)
-    setPage(1)
-  }
+  const start = (currentPage - 1) * pageSize
+  const visible = filtered.slice(start, start + pageSize)
 
   return (
     <>
@@ -101,17 +87,21 @@ function IncidentTable({
             aria-label="Search incidents"
             placeholder="Search title, service or ID..."
             value={search}
-            onChange={(event) => changeSearch(event.target.value)}
+            onChange={event => {
+              setSearch(event.target.value)
+              setPage(1)
+            }}
           />
-
           <select
             aria-label="Filter by incident status"
             value={filter}
-            onChange={(event) => changeFilter(event.target.value)}
+            onChange={event => {
+              setFilter(event.target.value)
+              setPage(1)
+            }}
           >
             <option value="All">All statuses</option>
-
-            {statuses.map((status) => (
+            {statuses.map(status => (
               <option key={status} value={status}>
                 {status}
               </option>
@@ -130,7 +120,6 @@ function IncidentTable({
                 <th>ACTION</th>
               </tr>
             </thead>
-
             <tbody>
               {loading && (
                 <tr>
@@ -139,7 +128,6 @@ function IncidentTable({
                   </td>
                 </tr>
               )}
-
               {!loading && error && (
                 <tr>
                   <td colSpan={5} className="empty-state">
@@ -147,116 +135,94 @@ function IncidentTable({
                   </td>
                 </tr>
               )}
-
-              {!loading && !error && visibleIncidents.map((incident) => (
-                <tr key={incident.id}>
-                  <td>
-                    <div className="incident-name">
-                      <strong>{incident.title}</strong>
-
-                      <span>
-                        INC-{String(incident.id).padStart(4, '0')}
-                        {' · '}
-                        {incident.serviceName}
-                      </span>
-                    </div>
-                  </td>
-
-                  <td>
-                    <span
-                      className={`severity severity-${incident.severity.toLowerCase()}`}
-                    >
-                      {incident.severity}
-                    </span>
-                  </td>
-
-                  <td>
-                    <span
-                      className={`incident-status incident-${incident.status.toLowerCase()}`}
-                    >
-                      {incident.status}
-                    </span>
-                  </td>
-
-                  <td className="muted-cell">
-                    {new Date(
-                      incident.resolvedAt ?? incident.createdAt,
-                    ).toLocaleString()}
-                  </td>
-
-                  <td>
-                    <button
-                      type="button"
-                      className="incident-view-button"
-                      onClick={() => setSelectedIncident(incident)}
-                    >
-                      View details
-                    </button>
-                  </td>
-                </tr>
-              ))}
-
               {!loading &&
                 !error &&
-                filteredIncidents.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="empty-state">
-                      No incidents match your search.
+                visible.map(incident => (
+                  <tr key={incident.id}>
+                    <td>
+                      <div className="incident-name">
+                        <strong>{incident.title}</strong>
+                        <span>
+                          INC-{String(incident.id).padStart(4, '0')} ·{' '}
+                          {incident.serviceName}
+                        </span>
+                      </div>
+                    </td>
+                    <td>
+                      <span
+                        className={`severity severity-${incident.severity.toLowerCase()}`}
+                      >
+                        {incident.severity}
+                      </span>
+                    </td>
+                    <td>
+                      <span
+                        className={`incident-status incident-${incident.status.toLowerCase()}`}
+                      >
+                        {incident.status}
+                      </span>
+                    </td>
+                    <td className="muted-cell">
+                      {new Date(
+                        incident.resolvedAt ?? incident.createdAt,
+                      ).toLocaleString()}
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        className="incident-view-button"
+                        onClick={() => setSelectedIncident(incident)}
+                      >
+                        View details
+                      </button>
                     </td>
                   </tr>
-                )}
+                ))}
+              {!loading && !error && filtered.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="empty-state">
+                    No incidents match your search.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
 
-        {!loading && !error && filteredIncidents.length > 0 && (
+        {!loading && !error && filtered.length > 0 && (
           <div className="pagination">
             <label className="page-size">
               Rows per page
-
               <select
                 value={pageSize}
-                onChange={(event) =>
-                  changePageSize(Number(event.target.value))
-                }
+                onChange={event => {
+                  setPageSize(Number(event.target.value))
+                  setPage(1)
+                }}
               >
                 <option value={5}>5</option>
                 <option value={10}>10</option>
               </select>
             </label>
-
             <span className="page-info">
-              {startIndex + 1}–
-              {Math.min(
-                startIndex + pageSize,
-                filteredIncidents.length,
-              )}{' '}
-              of {filteredIncidents.length}
+              {start + 1}–{Math.min(start + pageSize, filtered.length)} of{' '}
+              {filtered.length}
             </span>
-
             <div className="page-buttons">
               <button
                 type="button"
                 disabled={currentPage <= 1}
-                onClick={() =>
-                  setPage((value) => Math.max(1, value - 1))
-                }
+                onClick={() => setPage(value => Math.max(1, value - 1))}
               >
                 Previous
               </button>
-
               <span>
                 {currentPage} / {totalPages}
               </span>
-
               <button
                 type="button"
                 disabled={currentPage >= totalPages}
-                onClick={() =>
-                  setPage((value) =>
-                    Math.min(totalPages, value + 1),
-                  )
-                }
+                onClick={() => setPage(value => Math.min(totalPages, value + 1))}
               >
                 Next
               </button>

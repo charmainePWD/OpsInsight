@@ -1,17 +1,20 @@
-
 import { useMemo } from 'react'
 import SummaryCard from '../components/SummaryCard'
 import { useServices } from '../hooks/useServices'
 import { useIncidents } from '../hooks/useIncidents'
-import type { Incident, Service } from '../types'
+import { useAssignments } from '../hooks/useAssignments'
+import type { Incident, Service, User } from '../types'
 import '../styles/OverviewPage.css'
 
+type OverviewPageProps = {
+  currentUser: User
+}
 
 const INCIDENT_STATUSES = [
-  { name: 'Open', color: '#5a8df5' },
-  { name: 'Investigating', color: '#692ad4' },
-  { name: 'Monitoring', color: '#1a3b5a' },
-  { name: 'Resolved', color: '#0a846a' },
+  { name: 'Open', color: '#0aa6c2' },
+  { name: 'Investigating', color: '#087b98' },
+  { name: 'Monitoring', color: '#36c4dc' },
+  { name: 'Resolved', color: '#063f55' },
 ] as const
 
 function getStatusClass(status: string) {
@@ -41,51 +44,24 @@ function formatDate(date: string) {
 
 function HealthGraph() {
   const points = [
-    [0, 32],
-    [35, 28],
-    [70, 31],
-    [105, 24],
-    [140, 27],
-    [175, 35],
-    [210, 29],
-    [245, 31],
-    [280, 25],
-    [315, 29],
-    [350, 22],
-    [385, 27],
-    [420, 21],
-    [455, 25],
-    [490, 18],
-    [525, 23],
-    [560, 20],
-    [595, 25],
-    [630, 19],
-    [665, 22],
-    [700, 17],
-    [735, 21],
-    [770, 18],
-    [800, 20],
+    [0, 92], [45, 84], [90, 78], [135, 83], [180, 68],
+    [225, 72], [270, 59], [315, 63], [360, 52], [405, 56],
+    [450, 43], [495, 49], [540, 35], [585, 40], [630, 29],
+    [675, 34], [720, 22], [765, 27], [800, 18],
   ]
 
   const linePath = points
     .map(([x, y], index) => `${index === 0 ? 'M' : 'L'} ${x} ${y}`)
     .join(' ')
-
   const areaPath = `${linePath} L 800 120 L 0 120 Z`
 
   return (
-    <section className="health-panel">
+    <section className="health-panel overview-panel">
       <div className="panel-title">
-        <span className="heading-icon" aria-hidden="true">
-          <span>⌁</span>
-        </span>
-
         <div>
           <h2>Service Health</h2>
-          <p>System health over time</p>
+          <p>Overall service performance over the last 24 hours</p>
         </div>
-
-        <div style={{ flex: 1 }} />
 
         <select
           className="time-range-select"
@@ -115,8 +91,8 @@ function HealthGraph() {
         >
           <defs>
             <linearGradient id="healthAreaGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#35b58a" stopOpacity="0.22" />
-              <stop offset="100%" stopColor="#35b58a" stopOpacity="0.01" />
+              <stop offset="0%" stopColor="#08a8c5" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="#08a8c5" stopOpacity="0.01" />
             </linearGradient>
           </defs>
 
@@ -133,44 +109,30 @@ function HealthGraph() {
             />
           ))}
 
-          {[0, 160, 320, 480, 640, 800].map((x) => (
-            <line
-              key={x}
-              x1={x}
-              y1="0"
-              x2={x}
-              y2="120"
-              stroke="#f0f3f8"
-              strokeWidth="1"
-            />
-          ))}
-
           <path d={areaPath} fill="url(#healthAreaGradient)" />
 
           <path
             d={linePath}
             fill="none"
-            stroke="#35b58a"
+            stroke="#0789a7"
             strokeWidth="3"
             strokeLinecap="round"
             strokeLinejoin="round"
             vectorEffect="non-scaling-stroke"
           />
 
-          {points
-            .filter((_, index) => index % 4 === 0)
-            .map(([x, y]) => (
-              <circle
-                key={x}
-                cx={x}
-                cy={y}
-                r="3"
-                fill="#ffffff"
-                stroke="#35b58a"
-                strokeWidth="2"
-                vectorEffect="non-scaling-stroke"
-              />
-            ))}
+          {points.filter((_, index) => index % 3 === 0).map(([x, y]) => (
+            <circle
+              key={x}
+              cx={x}
+              cy={y}
+              r="3"
+              fill="#ffffff"
+              stroke="#0789a7"
+              strokeWidth="2"
+              vectorEffect="non-scaling-stroke"
+            />
+          ))}
         </svg>
       </div>
 
@@ -184,19 +146,7 @@ function HealthGraph() {
       </div>
 
       <div className="chart-legend">
-        <span>
-          <span
-            style={{
-              display: 'inline-block',
-              width: 7,
-              height: 7,
-              borderRadius: '50%',
-              background: '#35b58a',
-              marginRight: 5,
-            }}
-          />
-          Service health
-        </span>
+        <span><i className="legend-dot teal" /> Service health</span>
       </div>
     </section>
   )
@@ -215,7 +165,6 @@ function IncidentStatusChart({ incidents }: { incidents: Incident[] }) {
   )
 
   const total = incidents.length
-
   let currentAngle = 0
 
   const gradient = total === 0
@@ -230,15 +179,11 @@ function IncidentStatusChart({ incidents }: { incidents: Incident[] }) {
         .join(', ')})`
 
   return (
-    <section className="incident-status-panel" >
+    <section className="incident-status-panel overview-panel">
       <div className="panel-title">
-        <span className="heading-icon" aria-hidden="true">
-          <span>◔</span>
-        </span>
-
         <div>
           <h2>Incident Status</h2>
-          <p>Breakdown by current status</p>
+          <p>Current incident distribution</p>
         </div>
       </div>
 
@@ -258,14 +203,10 @@ function IncidentStatusChart({ incidents }: { incidents: Incident[] }) {
         <ul className="donut-legend">
           {counts.map((item) => (
             <li key={item.name}>
-              <span>
-                <span
-                  className="legend-dot"
-                  style={{ backgroundColor: item.color }}
-                />
-                {` ${item.name}: `}
+              <span className="legend-label">
+                <i className="legend-dot" style={{ backgroundColor: item.color }} />
+                {item.name}
               </span>
-
               <strong>{item.count}</strong>
             </li>
           ))}
@@ -275,10 +216,7 @@ function IncidentStatusChart({ incidents }: { incidents: Incident[] }) {
   )
 }
 
-function RecentIncidentsTable({
-  incidents,
-  services,
-}: {
+function RecentIncidentsTable({ incidents, services }: {
   incidents: Incident[]
   services: Service[]
 }) {
@@ -288,16 +226,19 @@ function RecentIncidentsTable({
         new Date(b.createdAt).getTime() -
         new Date(a.createdAt).getTime(),
     )
-    .slice(0, 5)
+    .slice(0, 4)
 
   const serviceNames = new Map(
     services.map((service) => [service.id, service.name]),
   )
 
   return (
-    <section className="recent-incidents-panel">
+    <section className="recent-incidents-panel overview-panel">
       <div className="panel-title">
-        <h2>Recent Incidents</h2>
+        <div>
+          <h2>Recent Incidents</h2>
+          <p>Latest reported issues across monitored services</p>
+        </div>
       </div>
 
       <div className="incident-table-wrap">
@@ -320,17 +261,13 @@ function RecentIncidentsTable({
                     serviceNames.get(incident.serviceId) ||
                     `Service ${incident.serviceId}`}
                 </td>
-
                 <td>{incident.title}</td>
-
                 <td>{incident.severity}</td>
-
                 <td>
-                  <span className= {`incident-status ${getStatusClass(incident.status)}`}>
+                  <span className={`incident-status ${getStatusClass(incident.status)}`}>
                     {incident.status}
                   </span>
                 </td>
-
                 <td>{formatDate(incident.createdAt)}</td>
               </tr>
             ))}
@@ -349,7 +286,84 @@ function RecentIncidentsTable({
   )
 }
 
-function OverviewPage() {
+function ToDoPanel({
+  isAdmin,
+  pendingAbandonments,
+  unassignedIncidents,
+  downServices,
+  assignedIncidents,
+}: {
+  isAdmin: boolean
+  pendingAbandonments: number
+  unassignedIncidents: number
+  downServices: number
+  assignedIncidents: number
+}) {
+  const items = isAdmin
+    ? [
+        {
+          label: 'Pending abandonment requests',
+          count: pendingAbandonments,
+          detail: 'Requests requiring your review',
+          tone: 'todo-warning',
+        },
+        {
+          label: 'Unassigned incidents',
+          count: unassignedIncidents,
+          detail: 'Active incidents without an owner',
+          tone: 'todo-info',
+        },
+        {
+          label: 'Services marked Down',
+          count: downServices,
+          detail: 'Services requiring attention',
+          tone: 'todo-danger',
+        },
+      ]
+    : [
+        {
+          label: 'Abandonment requests awaiting approval',
+          count: pendingAbandonments,
+          detail: 'Your submitted requests awaiting review',
+          tone: 'todo-warning',
+        },
+        {
+          label: 'Assigned incidents',
+          count: assignedIncidents,
+          detail: 'Incidents currently assigned to you',
+          tone: 'todo-info',
+        },
+      ]
+
+  return (
+    <section className="todo-panel overview-panel">
+      <div className="panel-title">
+        <div>
+          <h2>To-do</h2>
+          <p>{isAdmin ? 'Items requiring administrator attention' : 'Your outstanding work'}</p>
+        </div>
+        <span className="todo-role">{isAdmin ? 'ADMINISTRATOR' : 'CONTRIBUTOR'}</span>
+      </div>
+
+      <div className="todo-grid">
+        {items.map((item) => (
+          <article className={`todo-item ${item.tone}`} key={item.label}>
+            <div className="todo-count">{item.count}</div>
+            <div className="todo-copy">
+              <strong>{item.label}</strong>
+              <span>{item.detail}</span>
+            </div>
+            <span className="todo-arrow" aria-hidden="true">›</span>
+          </article>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function OverviewPage({ currentUser }: OverviewPageProps) {
+  const isAdmin = currentUser.permission === 'Administrator'
+
   const {
     services,
     loading: servicesLoading,
@@ -361,6 +375,13 @@ function OverviewPage() {
     loading: incidentsLoading,
     error: incidentsError,
   } = useIncidents()
+
+  const {
+    assignments,
+    abandonmentRequests,
+    abandonmentLoading,
+    abandonmentError,
+  } = useAssignments(true, isAdmin)
 
   const today = new Date().toDateString()
 
@@ -387,75 +408,106 @@ function OverviewPage() {
     (service) => service.status === 'Degraded',
   ).length
 
+  const pendingAbandonments = isAdmin
+    ? abandonmentRequests.filter((request) => request.status === 'Pending').length
+    : assignments.filter(
+        (assignment) =>
+          assignment.isActive &&
+          assignment.pendingAbandonmentRequest !== null &&
+          assignment.pendingAbandonmentRequest !== undefined,
+      ).length
+
+  const unassignedIncidents = incidents.filter(
+    (incident) =>
+      incident.status !== 'Resolved' &&
+      incident.assignmentId === null,
+  ).length
+
+  const downServices = services.filter(
+    (service) => service.status === 'Down',
+  ).length
+
+  const assignedIncidents = isAdmin
+    ? assignments.filter((assignment) => assignment.isActive).length
+    : incidents.filter(
+        (incident) =>
+          incident.isAssignedToCurrentUser &&
+          incident.status !== 'Resolved',
+      ).length
+
   const loading = servicesLoading || incidentsLoading
-  const error = servicesError || incidentsError
+  const error = servicesError || incidentsError || abandonmentError
 
   return (
     <main className="overview-page">
       <header className="overview-header">
         <div>
-          <h1>       Operations Overview</h1>
-          <p>Here’s what’s happening with your services and operations.</p>
+          <h1>Operations Overview</h1>
+          <p>Here’s what’s happening across your services and operations.</p>
         </div>
+        <span className="overview-live-status"><i /> Live operations</span>
       </header>
 
       {error && <div className="notice-error">{error}</div>}
 
-      <section className="summary-grid">
-        <SummaryCard
-          label="Open Incidents"
-          value={loading ? '—' : openCount}
-          icon="!"
-          iconClass="icon-alert"
-          footnote="Currently open"
-        />
+      <section className="overview-main-grid">
+        <div className="summary-grid">
+          <SummaryCard
+            label="Open Incidents"
+            value={loading ? '—' : openCount}
+            icon="!"
+            iconClass="icon-alert"
+            footnote="Currently open"
+          />
 
-        <SummaryCard
-          label="Investigating"
-          value={loading ? '—' : investigatingCount}
-          icon="◷"
-          iconClass="icon-warning"
-          footnote="Being investigated"
-        />
+          <SummaryCard
+            label="Investigating"
+            value={loading ? '—' : investigatingCount}
+            icon="◷"
+            iconClass="icon-warning"
+            footnote="Being investigated"
+          />
 
-        <SummaryCard
-          label="Resolved Today"
-          value={loading ? '—' : resolvedTodayCount}
-          icon="✓"
-          iconClass="icon-success"
-          footnote="Resolved since midnight"
-        />
+          <SummaryCard
+            label="Resolved Today"
+            value={loading ? '—' : resolvedTodayCount}
+            icon="✓"
+            iconClass="icon-success"
+            footnote="Resolved since midnight"
+          />
 
-        <SummaryCard
-          label="Monitored Services"
-          value={loading ? '—' : services.length}
-          icon="▤"
-          iconClass="icon-info"
-          footnote={
-            loading ? (
-              'Loading services'
-            ) : (
-              <>
-                <span>{operationalCount} operational</span>
-                {' · '}
-                <span>{degradedCount} degraded</span>
-              </>
-            )
-          }
-        />
-      </section>
+          <SummaryCard
+            label="Monitored Services"
+            value={loading ? '—' : services.length}
+            icon="▤"
+            iconClass="icon-info"
+            footnote={
+              loading
+                ? 'Loading services'
+                : `${operationalCount} operational · ${degradedCount} degraded`
+            }
+          />
+        </div>
 
-      <section className="overview-charts">
         <HealthGraph />
         <IncidentStatusChart incidents={incidents} />
       </section>
 
-      <section className="overview-bottom">
-        <RecentIncidentsTable
-          incidents={incidents}
-          services={services}
+      <section className="overview-bottom-grid">
+        <ToDoPanel
+          isAdmin={isAdmin}
+          pendingAbandonments={pendingAbandonments}
+          unassignedIncidents={unassignedIncidents}
+          downServices={downServices}
+          assignedIncidents={assignedIncidents}
         />
+
+        <RecentIncidentsTable incidents={incidents} services={services} />
       </section>
+
+      {isAdmin && abandonmentLoading && (
+        <p className="overview-loading-note">Refreshing abandonment requests…</p>
+      )}
     </main>
   )
 }

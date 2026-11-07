@@ -1,0 +1,180 @@
+.assignment-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 0 0 16px;
+  padding: 6px;
+  border: 1px solid #e3e9f2;
+  border-radius: 9px;
+  background: #f8faff;
+}
+
+.assignment-tabs button {
+  padding: 9px 13px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #66758c;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.assignment-tabs button:hover {
+  background: #eef2fa;
+  color: #34445e;
+}
+
+.assignment-tabs button.active {
+  border-color: #d9e3f7;
+  background: #fff;
+  color: #365fc0;
+  box-shadow: 0 1px 3px rgb(28 48 83 / 7%);
+}
+
+.assignment-incident-link {
+  display: grid;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #34445d;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.assignment-incident-link strong {
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.assignment-incident-link span {
+  color: #8995a7;
+  font-size: 9px;
+}
+
+.assignment-incident-link:hover strong,
+.abandonment-incident-link:hover {
+  color: #416ed5;
+  text-decoration: underline;
+}
+
+.assign-incident-panel {
+  margin-top: 0;
+}
+
+.assign-incident-controls {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 15px 18px 18px;
+  border-top: 1px solid #edf0f5;
+}
+
+.assign-incident-controls label {
+  display: grid;
+  gap: 6px;
+  min-width: 220px;
+  color: #526078;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.assign-incident-controls select {
+  height: 34px;
+  padding: 0 9px;
+  border: 1px solid #dce3ed;
+  border-radius: 6px;
+  background: #fff;
+  color: #34445d;
+  font: inherit;
+  font-size: 11px;
+}
+
+.assign-incident-controls input[type=radio] {
+  width: 15px;
+  height: 15px;
+  accent-color: #416ed5;
+  cursor: pointer;
+}
+
+.assign-incident-controls .page-action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.assignment-access-denied {
+  display: grid;
+  gap: 5px;
+  min-height: 130px;
+  place-content: center;
+  padding: 25px;
+  text-align: center;
+  color: #8290a4;
+  font-size: 11px;
+}
+
+.assignment-access-denied strong {
+  color: #485970;
+  font-size: 13px;
+}
+
+.abandonment-incident-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #26364e;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 750;
+  text-align: left;
+  cursor: pointer;
+}
+
+.abandonment-status-badge {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border-radius: 5px;
+  background: #edf2f7;
+  color: #64748b;
+  font-size: 9px;
+  font-weight: 750;
+  text-transform: capitalize;
+}
+
+.abandonment-status-badge.pending {
+  background: #fff3dc;
+  color: #a76a16;
+}
+
+.abandonment-readonly-note {
+  margin-top: 13px;
+  color: #8995a7;
+  font-size: 10px;
+}
+
+@media (max-width: 650px) {
+  .assign-incident-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .assign-incident-controls label {
+    min-width: 0;
+  }
+
+  .assign-incident-controls button {
+    width: 100%;
+  }
+
+  .assignment-tabs {
+    gap: 4px;
+  }
+
+  .assignment-tabs button {
+    padding: 8px;
+  }
+}

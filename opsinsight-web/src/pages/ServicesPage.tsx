@@ -1,13 +1,13 @@
-
+import type { User } from '../types'
 import ServiceHealthTable from '../components/ServiceHealthTable'
 import { useServices } from '../hooks/useServices'
 
-function ServicesPage() {
+type Props = { currentUser: User }
+
+function ServicesPage({ currentUser }: Props) {
   const { services, loading, error } = useServices()
-
-
-const downCount = services.filter(
-    (service) => service.status == 'Down',
+  const downCount = services.filter(
+    service => service.status === 'Down',
   ).length
 
   return (
@@ -20,7 +20,7 @@ const downCount = services.filter(
         </div>
         <div className="page-count">
           <strong>{loading ? '—' : downCount}</strong>
-          <span>services down!</span>
+          <span>services down</span>
         </div>
       </section>
 
@@ -28,6 +28,7 @@ const downCount = services.filter(
         services={services}
         loading={loading}
         error={error}
+        currentUser={currentUser}
       />
 
       <footer>

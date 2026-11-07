@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import './App.css'
 import './styles/AdminPages.css'
-
 import OverviewPage from './pages/OverviewPage'
 import ServicesPage from './pages/ServicesPage'
 import IncidentsPage from './pages/IncidentsPage'
@@ -17,11 +16,7 @@ type Page =
   | 'assignments'
   | 'permissions'
 
-const navigation: {
-  id: Page
-  label: string
-  icon: string
-}[] = [
+const navigation: { id: Page; label: string; icon: string }[] = [
   { id: 'overview', label: 'Overview', icon: '▦' },
   { id: 'services', label: 'Services', icon: '◈' },
   { id: 'incidents', label: 'Incidents', icon: '◉' },
@@ -31,8 +26,10 @@ const navigation: {
 
 function App() {
   const { user, loading, checkEmail, login, logout } = useAuth()
-
   const [activePage, setActivePage] = useState<Page>('overview')
+  const [selectedIncidentId, setSelectedIncidentId] = useState<number | null>(
+    null,
+  )
   const [logoutError, setLogoutError] = useState('')
   const [showProfileMenu, setShowProfileMenu] = useState(false)
 
@@ -44,8 +41,7 @@ function App() {
     return <LoginPage checkEmail={checkEmail} login={login} />
   }
 
-  const initials =
-    `${user.name.charAt(0)}${user.surname.charAt(0)}`.toUpperCase()
+  const initials = `${user.name.charAt(0)}${user.surname.charAt(0)}`.toUpperCase()
 
   async function handleLogout() {
     setLogoutError('')
@@ -59,12 +55,20 @@ function App() {
     }
   }
 
+  function openIncident(incidentId: number) {
+    setSelectedIncidentId(incidentId)
+    setActivePage('incidents')
+  }
+
+  function clearSelectedIncident() {
+    setSelectedIncidentId(null)
+  }
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand">
           <div className="brand-icon">O</div>
-
           <div>
             <strong>OpsInsight</strong>
             <span>OPERATIONS CENTER</span>
@@ -72,16 +76,16 @@ function App() {
         </div>
 
         <div className="nav-label">WORKSPACE</div>
-
         <nav>
-          {navigation.map((item) => (
+          {navigation.map(item => (
             <button
               type="button"
               key={item.id}
-              className={`nav-item ${
-                activePage === item.id ? 'active' : ''
-              }`}
-              onClick={() => setActivePage(item.id)}
+              className={`nav-item ${activePage === item.id ? 'active' : ''}`}
+              onClick={() => {
+                setActivePage(item.id)
+                if (item.id !== 'incidents') setSelectedIncidentId(null)
+              }}
             >
               <span>{item.icon}</span>
               {item.label}
@@ -97,25 +101,22 @@ function App() {
 
           <div className="profile">
             <div className="avatar">{initials}</div>
-
             <div className="profile-details">
-              <strong>{user.name} {user.surname}</strong>
+              <strong>
+                {user.name} {user.surname}
+              </strong>
               <span>{user.permission}</span>
             </div>
-
             <div className="profile-menu">
               <button
                 type="button"
                 className="profile-menu-button"
                 aria-label="Open profile menu"
                 aria-expanded={showProfileMenu}
-                onClick={() =>
-                  setShowProfileMenu((visible) => !visible)
-                }
+                onClick={() => setShowProfileMenu(value => !value)}
               >
                 ⋮
               </button>
-
               {showProfileMenu && (
                 <div className="profile-menu-options">
                   <button
@@ -125,7 +126,6 @@ function App() {
                   >
                     Sign out
                   </button>
-
                   {logoutError && (
                     <p className="notice-error">{logoutError}</p>
                   )}
@@ -140,15 +140,11 @@ function App() {
         <header className="topbar">
           <div className="breadcrumb">
             Workspace <span>/</span>{' '}
-            {navigation.find(
-              (item) => item.id === activePage,
-            )?.label}
+            {navigation.find(item => item.id === activePage)?.label}
           </div>
-
           <div className="topbar-right">
             <span className="live-dot" />
             Demo monitoring
-
             <div
               className="top-avatar"
               title={`${user.name} — ${user.permission}`}
@@ -158,20 +154,18 @@ function App() {
           </div>
         </header>
 
-        {activePage === 'overview' && <OverviewPage />}
-
-        {activePage === 'services' && <ServicesPage />}
-
+        {activePage === 'overview' && <OverviewPage currentUser={user} />}
+        {activePage === 'services' && <ServicesPage currentUser={user} />}
         {activePage === 'incidents' && (
-          <IncidentsPage currentUser={user} />
+          <IncidentsPage
+            currentUser={user}
+            selectedIncidentId={selectedIncidentId}
+            onIncidentOpened={clearSelectedIncident}
+          />
         )}
-
-        {activePage === 'permissions' && (
-          <PermissionsPage currentUser={user} />
-        )}
-
+        {activePage === 'permissions' && <PermissionsPage currentUser={user} />}
         {activePage === 'assignments' && (
-          <AssignmentsPage currentUser={user} />
+          <AssignmentsPage currentUser={user} onOpenIncident={openIncident} />
         )}
       </main>
     </div>

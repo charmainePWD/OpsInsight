@@ -1,53 +1,7 @@
-
 import { useState } from 'react'
 import type { Assignment } from '../types'
 
-type AssignmentTableProps = {
-  assignments: Assignment[]
-  loading: boolean
-  error: string | null
-  isAdmin: boolean
-  onUnassign: (id: number) => Promise<void>
-}
-
-function AssignmentTable({
-  assignments,
-  loading,
-  error,
-  isAdmin,
-  onUnassign,
-}: AssignmentTableProps) {
-  const activeAssignments = assignments.filter((assignment) => assignment.isActive)
-  const historicalAssignments = assignments.filter((assignment) => !assignment.isActive)
-
-  return (
-    <>
-      <AssignmentSection
-        title="Active assignments"
-        description="Current incident ownership and available actions."
-        assignments={activeAssignments}
-        loading={loading}
-        error={error}
-        isAdmin={isAdmin}
-        onUnassign={onUnassign}
-        emptyMessage="No active assignments."
-      />
-      <AssignmentSection
-        title="Assignment history"
-        description="Previously completed assignments and when ownership ended."
-        assignments={historicalAssignments}
-        loading={loading}
-        error={error}
-        isAdmin={isAdmin}
-        onUnassign={onUnassign}
-        emptyMessage="No historical assignments."
-        historical
-      />
-    </>
-  )
-}
-
-type AssignmentSectionProps = {
+type Props = {
   title: string
   description: string
   assignments: Assignment[]
@@ -55,11 +9,11 @@ type AssignmentSectionProps = {
   error: string | null
   isAdmin: boolean
   onUnassign: (id: number) => Promise<void>
-  emptyMessage: string
+  onOpenIncident: (incidentId: number) => void
   historical?: boolean
 }
 
-function AssignmentSection({
+function AssignmentTable({
   title,
   description,
   assignments,
@@ -67,41 +21,34 @@ function AssignmentSection({
   error,
   isAdmin,
   onUnassign,
-  emptyMessage,
+  onOpenIncident,
   historical = false,
-}: AssignmentSectionProps) {
+}: Props) {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(5)
-  const columnCount = historical ? 5 : (isAdmin ? 5 : 4)
-
-  const normalizedSearch = search.trim().toLowerCase()
-  const filteredAssignments = normalizedSearch
-    ? assignments.filter((assignment) => [
-      assignment.incidentTitle,
-      assignment.serviceName,
-      `INC-${String(assignment.incidentId).padStart(4, '0')}`,
-      assignment.userName,
-      assignment.incidentStatus,
-      ...(!isAdmin ? [assignment.assignedBy] : []),
-      assignment.assignedAt,
-      assignment.unassignedAt ?? '',
-    ].some((value) => value.toLowerCase().includes(normalizedSearch)))
-    : assignments
-  const pageCount = Math.max(1, Math.ceil(filteredAssignments.length / pageSize))
+  const pageSize = 5
+  const query = search.trim().toLowerCase()
+  const filtered = assignments.filter(item =>
+    [
+      item.incidentTitle,
+      item.serviceName,
+      `INC-${String(item.incidentId).padStart(4, '0')}`,
+      item.userName,
+      item.assignedBy,
+      item.incidentStatus,
+    ].some(value => value.toLowerCase().includes(query)),
+  )
+  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize))
   const currentPage = Math.min(page, pageCount)
-  const startIndex = (currentPage - 1) * pageSize
-  const visibleAssignments = filteredAssignments.slice(startIndex, startIndex + pageSize)
-
-  function updateSearch(value: string) {
-    setSearch(value)
-    setPage(1)
-  }
-
-  function updatePageSize(value: number) {
-    setPageSize(value)
-    setPage(1)
-  }
+  const start = (currentPage - 1) * pageSize
+  const visible = filtered.slice(start, start + pageSize)
+  const columns = historical
+    ? isAdmin
+      ? 6
+      : 5
+    : isAdmin
+      ? 6
+      : 4
 
   return (
     <section className="panel assignment-panel">
@@ -115,10 +62,13 @@ function AssignmentSection({
       <div className="incident-tools">
         <input
           type="search"
-          aria-label={`Search ${title.toLowerCase()}`}
-          placeholder="Search title, service, user or ID..."
+          aria-label={`Search ${title}`}
+          placeholder="Search incident, service, user or ID..."
           value={search}
-          onChange={(event) => updateSearch(event.target.value)}
+          onChange={event => {
+            setSearch(event.target.value)
+            setPage(1)
+          }}
         />
       </div>
 
@@ -129,86 +79,117 @@ function AssignmentSection({
               <th>INCIDENT</th>
               {isAdmin && <th>ASSIGNED TO</th>}
               <th>STATUS</th>
-              {!isAdmin && <th>ASSIGNED BY</th>}
+              <th>ASSIGNED BY</th>
               <th>ASSIGNED AT</th>
-              {historical ? <th>UNASSIGNED AT</th> : isAdmin && <th>ACTION</th>}
+              {historical ? <th>CLOSED AT</th> : isAdmin && <th>ACTION</th>}
             </tr>
           </thead>
           <tbody>
-            {loading && <tr><td colSpan={columnCount} className="empty-state">Loading assignments...</td></tr>}
-            {!loading && error && <tr><td colSpan={columnCount} className="empty-state">{error}</td></tr>}
-            {!loading && !error && visibleAssignments.map((assignment) => (
-              <tr key={assignment.id}>
-                <td>
-                  <div className="incident-name">
-                    <strong>{assignment.incidentTitle}</strong>
-                    <span>INC-{String(assignment.incidentId).padStart(4, '0')} · {assignment.serviceName}</span>
-                  </div>
+            {loading && (
+              <tr>
+                <td colSpan={columns} className="empty-state">
+                  Loading assignments...
                 </td>
-                {isAdmin && <td>{assignment.userName}</td>}
-                <td>
-                  <span className={`incident-status incident-${assignment.incidentStatus.toLowerCase()}`}>
-                    {assignment.incidentStatus}
-                  </span>
+              </tr>
+            )}
+            {!loading && error && (
+              <tr>
+                <td colSpan={columns} className="empty-state">
+                  {error}
                 </td>
-                {!isAdmin && <td>{assignment.assignedBy}</td>}
-                <td className="muted-cell">{new Date(assignment.assignedAt).toLocaleString()}</td>
-                {historical ? (
-                  <td className="muted-cell">
-                    {assignment.unassignedAt ? new Date(assignment.unassignedAt).toLocaleString() : '—'}
-                  </td>
-                ) : isAdmin && (
+              </tr>
+            )}
+            {!loading &&
+              !error &&
+              visible.map(item => (
+                <tr key={item.id}>
                   <td>
                     <button
                       type="button"
-                      className="secondary-button"
-                      onClick={() => { void onUnassign(assignment.id).catch(() => undefined) }}
+                      className="assignment-incident-link"
+                      onClick={() => onOpenIncident(item.incidentId)}
                     >
-                      Unassign
+                      <strong>{item.incidentTitle}</strong>
+                      <span>
+                        INC-{String(item.incidentId).padStart(4, '0')} ·{' '}
+                        {item.serviceName}
+                      </span>
                     </button>
                   </td>
-                )}
+                  {isAdmin && <td>{item.userName}</td>}
+                  <td>
+                    <span
+                      className={`incident-status incident-${item.incidentStatus.toLowerCase()}`}
+                    >
+                      {item.incidentStatus}
+                    </span>
+                    {item.status === 'PendingAbandonment' && (
+                      <span className="request-pending-badge">
+                        Abandonment pending
+                      </span>
+                    )}
+                  </td>
+                  <td>{item.assignedBy}</td>
+                  <td className="muted-cell">
+                    {new Date(item.assignedAt).toLocaleString()}
+                  </td>
+                  {historical ? (
+                    <td className="muted-cell">
+                      {item.unassignedAt
+                        ? new Date(item.unassignedAt).toLocaleString()
+                        : '—'}
+                    </td>
+                  ) : (
+                    isAdmin && (
+                      <td>
+                        <button
+                          type="button"
+                          className="secondary-button"
+                          onClick={() => void onUnassign(item.id)}
+                        >
+                          Unassign
+                        </button>
+                      </td>
+                    )
+                  )}
+                </tr>
+              ))}
+            {!loading && !error && visible.length === 0 && (
+              <tr>
+                <td colSpan={columns} className="empty-state">
+                  {query
+                    ? 'No matching assignments.'
+                    : historical
+                      ? 'No assignment history yet.'
+                      : 'No active assignments.'}
+                </td>
               </tr>
-            ))}
-            {!loading && !error && visibleAssignments.length === 0 && (
-              <tr><td colSpan={columnCount} className="empty-state">{search ? 'No matching assignments.' : emptyMessage}</td></tr>
             )}
           </tbody>
         </table>
       </div>
 
-      {!loading && !error && filteredAssignments.length > 0 && (
+      {!loading && !error && filtered.length > 0 && (
         <div className="pagination">
-          <label className="page-size">
-            Rows per page
-            <select
-              value={pageSize}
-              onChange={(event) => updatePageSize(Number(event.target.value))}
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-            </select>
-          </label>
-
           <span className="page-info">
-            {startIndex + 1}–{Math.min(startIndex + pageSize, filteredAssignments.length)} of {filteredAssignments.length}
+            {start + 1}–{Math.min(start + pageSize, filtered.length)} of{' '}
+            {filtered.length}
           </span>
-
           <div className="page-buttons">
             <button
               type="button"
               disabled={currentPage <= 1}
-              onClick={() => setPage((value) => Math.max(1, value - 1))}
+              onClick={() => setPage(value => Math.max(1, value - 1))}
             >
               Previous
             </button>
-            <span>{currentPage} / {pageCount}</span>
+            <span>
+              {currentPage} / {pageCount}
+            </span>
             <button
               type="button"
               disabled={currentPage >= pageCount}
-              onClick={() => setPage((value) => Math.min(pageCount, value + 1))}
+              onClick={() => setPage(value => Math.min(pageCount, value + 1))}
             >
               Next
             </button>

@@ -1,4 +1,3 @@
-
 import { useCallback, useEffect, useState } from 'react'
 import type {
   AbandonmentRequest,
@@ -14,7 +13,7 @@ async function readResponse(response: Response) {
   return response.json().catch(() => ({}))
 }
 
-export function useAssignments(enabled: boolean, isAdmin = false) {
+export function useAssignments(enabled: boolean, _isAdmin = false) {
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [users, setUsers] = useState<User[]>([])
   const [incidents, setIncidents] = useState<Incident[]>([])
@@ -33,40 +32,25 @@ export function useAssignments(enabled: boolean, isAdmin = false) {
   const load = useCallback(async () => {
     if (!enabled) return
 
-    // Load assignments, users and incidents independently of
-    // the administrator's abandonment review requests.
     setLoading(true)
     setError(null)
 
     try {
-      const [assignmentResponse, userResponse, incidentResponse] =
-        await Promise.all([
-          fetch(API, { credentials: 'include' }),
-          fetch(`${API_BASE_URL}/users`, { credentials: 'include' }),
-          fetch(`${API_BASE_URL}/incidents`, { credentials: 'include' }),
-        ])
-
-      if (!assignmentResponse.ok) {
-        throw new Error('Could not load assignments.')
-      }
-
-      if (!userResponse.ok) {
-        throw new Error('Could not load users.')
-      }
-
-      if (!incidentResponse.ok) {
-        throw new Error('Could not load incidents.')
-      }
-
-      const [assignmentData, userData, incidentData] = await Promise.all([
-        assignmentResponse.json(),
-        userResponse.json(),
-        incidentResponse.json(),
+      const [a, u, i] = await Promise.all([
+        fetch(API, { credentials: 'include' }),
+        fetch(`${API_BASE_URL}/users`, { credentials: 'include' }),
+        fetch(`${API_BASE_URL}/incidents`, { credentials: 'include' }),
       ])
 
-      setAssignments(assignmentData as Assignment[])
-      setUsers(userData as User[])
-      setIncidents(incidentData as Incident[])
+      if (!a.ok || !u.ok || !i.ok) {
+        throw new Error('Could not load assignment data.')
+      }
+
+      const [ad, ud, id] = await Promise.all([a.json(), u.json(), i.json()])
+
+      setAssignments(ad as Assignment[])
+      setUsers(ud as User[])
+      setIncidents(id as Incident[])
     } catch (err) {
       setError(
         err instanceof Error
@@ -77,44 +61,33 @@ export function useAssignments(enabled: boolean, isAdmin = false) {
       setLoading(false)
     }
 
-    // Only administrators need the separate review request list.
-    // A failure here must not block the assignment tables.
-    if (isAdmin) {
-      setAbandonmentLoading(true)
-      setAbandonmentError(null)
+    setAbandonmentLoading(true)
+    setAbandonmentError(null)
 
-      try {
-        const response = await fetch(`${API}/abandonment-requests`, {
-          credentials: 'include',
-        })
+    try {
+      const response = await fetch(`${API}/abandonment-requests`, {
+        credentials: 'include',
+      })
+      const result = await readResponse(response)
 
-        if (!response.ok) {
-          const result = await readResponse(response)
-
-          throw new Error(
-            result.message ??
-              `Could not load abandonment requests (${response.status}).`,
-          )
-        }
-
-        const data = await response.json()
-        setAbandonmentRequests(data as AbandonmentRequest[])
-      } catch (err) {
-        setAbandonmentError(
-          err instanceof Error
-            ? err.message
-            : 'Could not load abandonment requests.',
+      if (!response.ok) {
+        throw new Error(
+          result.message ??
+            `Could not load abandonment requests (${response.status}).`,
         )
-        setAbandonmentRequests([])
-      } finally {
-        setAbandonmentLoading(false)
       }
-    } else {
+      setAbandonmentRequests(result as AbandonmentRequest[])
+    } catch (err) {
+      setAbandonmentError(
+        err instanceof Error
+          ? err.message
+          : 'Could not load abandonment requests.',
+      )
       setAbandonmentRequests([])
-      setAbandonmentError(null)
+    } finally {
       setAbandonmentLoading(false)
     }
-  }, [enabled, isAdmin])
+  }, [enabled])
 
   useEffect(() => {
     void load()
@@ -143,8 +116,10 @@ export function useAssignments(enabled: boolean, isAdmin = false) {
       credentials: 'include',
     })
 
+    const result = await readResponse(response)
+
     if (!response.ok) {
-      throw new Error('Could not close assignment.')
+      throw new Error(result.message ?? 'Could not close assignment.')
     }
 
     await load()
@@ -161,9 +136,7 @@ export function useAssignments(enabled: boolean, isAdmin = false) {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          adminNote: adminNote.trim() || null,
-        }),
+        body: JSON.stringify({ adminNote: adminNote.trim() || null }),
       },
     )
 
