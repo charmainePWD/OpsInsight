@@ -125,7 +125,7 @@ function AssignmentTable({
                     </span>
                     {item.status === 'PendingAbandonment' && (
                       <span className="request-pending-badge">
-                        Abandonment pending
+                        Request!
                       </span>
                     )}
                   </td>

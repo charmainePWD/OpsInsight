@@ -112,11 +112,12 @@
 .request-pending-badge {
   display: inline-flex;
   align-items: center;
+  margin-left: 3px;
   padding: 5px 9px;
   border-radius: 5px;
   background: #fff3df;
   color: #a66b16;
-  font-size: 10px;
+  font-size: 8px;
   font-weight: 700;
 }
 
