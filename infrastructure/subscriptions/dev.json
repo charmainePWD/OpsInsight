@@ -1,0 +1,49 @@
+{
+  "subscription": {
+    "name": "OpsInsight-Development",
+    "subscriptionId": "REPLACE_WITH_SUBSCRIPTION_ID",
+    "tenantId": "REPLACE_WITH_TENANT_ID"
+  },
+  "environment": "dev",
+  "location": "southafricanorth",
+  "resourceGroup": {
+    "name": "rg-opsinsight-dev",
+    "location": "southafricanorth"
+  },
+  "tags": {
+    "Project": "OpsInsight",
+    "Environment": "Development",
+    "ManagedBy": "Terraform",
+    "Application": "OpsInsight"
+  },
+  "resources": [
+    {
+      "name": "resource-groups",
+      "enabled": true
+    },
+    {
+      "name": "networking",
+      "enabled": true
+    },
+    {
+      "name": "app-service",
+      "enabled": true
+    },
+    {
+      "name": "sql-database",
+      "enabled": true
+    },
+    {
+      "name": "key-vault",
+      "enabled": true
+    },
+    {
+      "name": "application-insights",
+      "enabled": true
+    },
+    {
+      "name": "monitoring",
+      "enabled": true
+    }
+  ]
+}
