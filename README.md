@@ -8,7 +8,7 @@ The project was developed to demonstrate practical full-stack software developme
 
 ## Application Preview
 
-![OpsInsight Overview](screenshots/OverviewPage.png)
+![OpsInsight administrator overview](screenshots/Overview-Admin.png)
 
 ## Features
 
@@ -78,22 +78,27 @@ The frontend is responsible for the user interface and application interactions.
 ![Login](screenshots/LoginPage.png)
 
 ### Overview
-![Dashboard](screenshots/OverviewPage.png)
+![Administrator dashboard](screenshots/Overview-Admin.png)
+![Contributor dashboard](screenshots/OverviewContributor.png)
 
 ### Services
-![Services](screenshots/ServicesPage.png)
+![Services](screenshots/Services.png)
+![Service details](screenshots/ServicesDetails.png)
 
 ### Incidents
 ![Incidents](screenshots/IncidentsPage.png)
+![Incident details](screenshots/IncidentDetails.png)
 
 ### Assignments
-![Assignments](screenshots/AssignmentsPage.png)
+![Active assignments](screenshots/AssignmentsActive.png)
+![Assign an incident](screenshots/AssignIcident.png)
+![Contributor assignment workflow](screenshots/AssignUserContributor.png)
+![Contributor active assignments](screenshots/ActiveAssignmentsContributor.png)
+![Assignment history](screenshots/AssignmentHistory.png)
+![Administrator abandonment request review](screenshots/AbondenmentRequestAdmin.png)
 
 ### Permissions
 ![Permissions](screenshots/PermissionsPage.png)
-
-### Incident Details
-![Incident Details](screenshots/IncidentDetails.png)
 
 ## Getting Started
 
@@ -157,4 +162,3 @@ OpsInsight/
 ## Project Status
 
 OpsInsight is an ongoing independent development project. Its functionality and documentation may continue to evolve as additional features, refinements and improvements are introduced.
-
